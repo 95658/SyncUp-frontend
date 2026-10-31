@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNotificationsStore, NotificationItem } from '@/store/notificationsStore';
 import { useUIStore } from '@/store/uiStore';
 import { useWorkspaceStore } from '@/store/workspaceStore';
@@ -18,8 +18,12 @@ import {
 
 export const NotificationsDrawer: React.FC = () => {
   const { isNotificationOpen, setNotificationOpen, setViewingNotification, language } = useUIStore();
-  const { notifications, markAsRead, markAllAsRead, unreadCount } = useNotificationsStore();
+  const { notifications, markAsRead, markAllAsRead, unreadCount, fetchNotifications } = useNotificationsStore();
   const { setCurrentView, setSelectedProjectId, selectTask } = useWorkspaceStore();
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   if (!isNotificationOpen) return null;
 

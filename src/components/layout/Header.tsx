@@ -51,7 +51,11 @@ export const Header: React.FC = () => {
     setNotificationOpen,
     t,
   } = useUIStore();
-  const { unreadCount } = useNotificationsStore();
+  const { unreadCount, fetchNotifications } = useNotificationsStore();
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);

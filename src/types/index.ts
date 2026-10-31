@@ -15,6 +15,10 @@ export interface Organization {
   name: string;
   slug: string;
   logoUrl?: string;
+  description?: string;
+  website?: string;
+  industry?: string;
+  companySize?: string;
   adminName: string;
   adminEmail: string;
   adminPassword?: string;

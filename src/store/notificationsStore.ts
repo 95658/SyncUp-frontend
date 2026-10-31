@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { notificationsApi } from '@/lib/api';
 
 export interface NotificationItem {
   id: string;
@@ -15,57 +16,38 @@ export interface NotificationItem {
 interface NotificationsState {
   notifications: NotificationItem[];
   unreadCount: () => number;
+  fetchNotifications: () => Promise<void>;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   addNotification: (item: Omit<NotificationItem, 'id' | 'createdAt' | 'isRead'>) => void;
 }
 
 export const useNotificationsStore = create<NotificationsState>((set, get) => ({
-  notifications: [
-    {
-      id: 'notif-1',
-      type: 'TASK_ASSIGNED',
-      title: 'New Task Assigned',
-      body: 'You have been assigned to "PostgreSQL Migrations & Performance Tuning" by Ahmed Abdelfatah.',
-      isRead: false,
-      createdAt: '10 minutes ago',
-      entityType: 'task',
-      entityId: 'task-1',
-    },
-    {
-      id: 'notif-2',
-      type: 'MEETING_INVITE',
-      title: 'Sprint Planning Meeting Scheduled',
-      body: 'Libro Sprint 1 Planning & Estimation has been scheduled for tomorrow at 10:00 AM.',
-      isRead: false,
-      createdAt: '1 hour ago',
-      entityType: 'meeting',
-      entityId: 'meet-1',
-    },
-    {
-      id: 'notif-3',
-      type: 'TASK_UPDATED',
-      title: 'Task Status Moved to In Review',
-      body: 'Task "Design System Tokens & Dark Theme" is now ready for QA and Product Review.',
-      isRead: false,
-      createdAt: '3 hours ago',
-      entityType: 'task',
-      entityId: 'task-2',
-    },
-    {
-      id: 'notif-4',
-      type: 'PROJECT_INVITE',
-      title: 'Invited to Project',
-      body: 'You were added as an active collaborator on "E-Commerce Core Engine".',
-      isRead: true,
-      createdAt: 'Yesterday',
-      entityType: 'project',
-      entityId: 'proj-1',
-    },
-  ],
+  notifications: [],
 
   unreadCount: () => {
     return get().notifications.filter((n) => !n.isRead).length;
+  },
+
+  fetchNotifications: async () => {
+    try {
+      const live = await notificationsApi.getNotifications();
+      if (Array.isArray(live) && live.length > 0) {
+        const formatted: NotificationItem[] = live.map((n: any) => ({
+          id: n.id,
+          type: n.type || 'SYSTEM',
+          title: n.title,
+          body: n.body || '',
+          isRead: n.isRead,
+          createdAt: new Date(n.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+          entityType: n.entityType?.toLowerCase(),
+          entityId: n.entityId,
+        }));
+        set({ notifications: formatted });
+      }
+    } catch (e) {
+      // fallback handled gracefully
+    }
   },
 
   markAsRead: (id) => {
@@ -74,12 +56,16 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
         n.id === id ? { ...n, isRead: true } : n
       ),
     }));
+    if (!id.startsWith('notif-')) {
+      notificationsApi.markAsRead(id).catch(() => null);
+    }
   },
 
   markAllAsRead: () => {
     set((state) => ({
       notifications: state.notifications.map((n) => ({ ...n, isRead: true })),
     }));
+    notificationsApi.markAllAsRead().catch(() => null);
   },
 
   addNotification: (item) => {

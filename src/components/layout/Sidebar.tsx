@@ -349,11 +349,7 @@ export const Sidebar: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        if (item.id === 'settings') {
-                          setCurrentView('dashboard');
-                        } else {
-                          setCurrentView(item.id as any);
-                        }
+                        setCurrentView(item.id as any);
                       }}
                       style={{
                         display: 'flex',

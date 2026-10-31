@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { showSnack } from '@/store/snackbarStore';
+import { calendarApi } from '@/lib/api';
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -62,8 +63,32 @@ export const CalendarView: React.FC = () => {
 
   const visibleDays = calendarViewMode === 'week' ? allDays.slice(14, 21) : allDays;
 
+  // Load live meetings from backend
+  useEffect(() => {
+    if (!activeOrgId) return;
+    calendarApi.getMeetings(activeOrgId).then((liveMeetings) => {
+      if (Array.isArray(liveMeetings) && liveMeetings.length > 0) {
+        const formatted = liveMeetings.map((m: any) => ({
+          id: m.id,
+          title: m.title,
+          description: m.description || '',
+          date: new Date(m.startTime).toISOString().split('T')[0],
+          timeRange: `${new Date(m.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${new Date(m.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+          participants: (m.participants || []).map((p: any) => ({
+            id: p.userId,
+            name: p.user?.fullName || 'Member',
+            avatarUrl: p.user?.avatarUrl,
+          })),
+          color: '#2563eb',
+          externalLink: m.meetingUrl || 'https://meet.google.com/new',
+        }));
+        useWorkspaceStore.setState({ meetings: formatted });
+      }
+    }).catch(() => null);
+  }, [activeOrgId]);
+
   // Requirement 33: Create meeting and appear on calendar
-  const handleCreateMeeting = (e: React.FormEvent) => {
+  const handleCreateMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isOrgOwner) {
       showSnack(
@@ -73,12 +98,29 @@ export const CalendarView: React.FC = () => {
       return;
     }
 
-    if (!meetingTitle.trim()) return;
+    if (!meetingTitle.trim() || !activeOrgId) return;
+
+    const startIso = new Date(`${meetingDate}T${meetingStartTime}:00Z`).toISOString();
+    const endIso = new Date(`${meetingDate}T${meetingEndTime}:00Z`).toISOString();
+
+    let createdId = `meet-${Date.now()}`;
+    try {
+      const res = await calendarApi.createMeeting(activeOrgId, {
+        title: meetingTitle.trim(),
+        description: meetingDesc.trim(),
+        startTime: startIso,
+        endTime: endIso,
+        meetingUrl: 'https://meet.google.com/new',
+      });
+      if (res?.id) createdId = res.id;
+    } catch (err: any) {
+      console.warn('Backend meeting save fallback:', err);
+    }
 
     const timeRangeFormatted = `${meetingStartTime} - ${meetingEndTime}`;
 
     const newMeeting = {
-      id: `meet-${Date.now()}`,
+      id: createdId,
       title: meetingTitle.trim(),
       description: meetingDesc.trim(),
       date: meetingDate,
@@ -87,7 +129,7 @@ export const CalendarView: React.FC = () => {
         const m = availableMembers.find((mem) => mem.id === id);
         return {
           id,
-          name: m?.user?.name || 'Member',
+          name: m?.user?.name || (m?.user as any)?.fullName || 'Member',
           avatarUrl: (m?.user as any)?.avatarUrl,
         };
       }),

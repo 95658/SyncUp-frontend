@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { showSnack } from '@/store/snackbarStore';
+import { projectsApi, organizationsApi } from '@/lib/api';
 import {
   UserPlus,
   Search,
@@ -71,6 +72,27 @@ export const MembersView: React.FC = () => {
     date: string;
   }[]>([]);
 
+  // Fetch real pending invitations from backend (FR-INV-005)
+  useEffect(() => {
+    if (!activeOrgId) return;
+    organizationsApi.getInvitations(activeOrgId).then((invites) => {
+      if (Array.isArray(invites)) {
+        setPendingInvites(
+          invites.map((inv: any) => ({
+            id: inv.id,
+            name: inv.email.split('@')[0],
+            email: inv.email,
+            title: 'Invited Member',
+            role: inv.role,
+            team: 'Engineering',
+            projectType: 'General',
+            date: new Date(inv.createdAt).toLocaleDateString(),
+          }))
+        );
+      }
+    }).catch(() => null);
+  }, [activeOrgId]);
+
   const currentOrg = organizations.find((o) => o.id === activeOrgId) || organizations[0] || {
     name: 'Workspace',
   };
@@ -80,69 +102,80 @@ export const MembersView: React.FC = () => {
 
   const filteredMembers = members.filter(
     (m) =>
-      (m.user?.name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (m.user?.name || (m.user as any)?.fullName || '').toLowerCase().includes(search.toLowerCase()) ||
       (m.user?.email || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  // Requirement 29: Full fields invite
+  // Requirement 29 & BR-08: Full fields invite sent to backend
   const handleSendInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteEmail.trim()) return;
+    if (!inviteEmail.trim() || !activeOrgId) return;
 
-    const newInvite = {
-      id: `inv-${Date.now()}`,
-      name: inviteName.trim() || 'Invited User',
-      email: inviteEmail.trim(),
-      title: inviteTitle.trim() || 'Software Engineer',
-      role: inviteRole,
-      team: inviteTeam,
-      projectType: inviteProjectType,
-      date: 'Today',
-    };
+    try {
+      const inviteRes = await organizationsApi.inviteMember(activeOrgId, {
+        email: inviteEmail.trim(),
+        role: inviteRole,
+      });
 
-    setPendingInvites([newInvite, ...pendingInvites]);
+      const newInvite = {
+        id: inviteRes?.id || `inv-${Date.now()}`,
+        name: inviteName.trim() || inviteEmail.split('@')[0],
+        email: inviteEmail.trim(),
+        title: inviteTitle.trim() || 'Software Engineer',
+        role: inviteRole,
+        team: inviteTeam,
+        projectType: inviteProjectType,
+        date: 'Today',
+      };
 
-    // Add persistent member
-    await addNewMember({
-      name: inviteName.trim() || inviteEmail.split('@')[0],
-      email: inviteEmail.trim(),
-      jobTitle: inviteTitle.trim() || 'Team Member',
-      role: inviteRole === 'ADMIN' ? 'ADMIN' : 'MEMBER',
-      team: inviteTeam,
-    });
-
-    setInviteName('');
-    setInviteEmail('');
-    setInviteTitle('');
-    setInviteMemberModalOpen(false);
-    showSnack(
-      isAr ? `تم إرسال الدعوة وإضافة ${inviteEmail} بنجاح!` : `Invitation sent and member ${inviteEmail} added successfully!`,
-      'success'
-    );
+      setPendingInvites((prev) => [newInvite, ...prev]);
+      setInviteName('');
+      setInviteEmail('');
+      setInviteTitle('');
+      setInviteMemberModalOpen(false);
+      showSnack(
+        isAr ? `تم إرسال الدعوة إلى ${inviteEmail} بنجاح!` : `Invitation sent to ${inviteEmail} successfully!`,
+        'success'
+      );
+    } catch (err: any) {
+      showSnack(err.message || 'Failed to send invitation', 'error');
+    }
   };
 
-  // Requirement 34: Suspend member
+  // Requirement 34 & FR-MEM-005: Suspend member via backend API
   const handleToggleSuspendMember = async (member: any) => {
-    await toggleMemberStatus(member.id);
+    if (!activeOrgId) return;
     const nextStatus = member.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
-    showSnack(
-      isAr
-        ? `تم تغيير حالة العضو إلى: ${nextStatus}`
-        : `Member ${member.user?.name} status changed to ${nextStatus}`,
-      'info'
-    );
+    try {
+      await organizationsApi.updateMemberStatus(activeOrgId, member.id, nextStatus);
+      await toggleMemberStatus(member.id);
+      showSnack(
+        isAr
+          ? `تم تغيير حالة العضو إلى: ${nextStatus}`
+          : `Member ${member.user?.name || member.user?.fullName} status changed to ${nextStatus}`,
+        'info'
+      );
+    } catch (err: any) {
+      showSnack(err.message || 'Failed to update member status', 'error');
+    }
   };
 
-  // Requirement 34: Remove member
+  // Requirement 34: Remove member via backend API
   const handleRemoveMember = async (memberId: string) => {
-    await removeMember(memberId);
-    showSnack(isAr ? 'تمت إزالة العضو من المؤسسة بنجاح' : 'Member removed from organization', 'info');
+    if (!activeOrgId) return;
+    try {
+      await organizationsApi.removeMember(activeOrgId, memberId);
+      await removeMember(memberId);
+      showSnack(isAr ? 'تمت إزالة العضو من المؤسسة بنجاح' : 'Member removed from organization', 'info');
+    } catch (err: any) {
+      showSnack(err.message || 'Failed to remove member', 'error');
+    }
   };
 
-  // Requirement 10: Assign member to project dialog
-  const handleAssignMemberToProject = (e: React.FormEvent) => {
+  // Requirement 10 & 21: Assign member to project dialog (synced with PostgreSQL)
+  const handleAssignMemberToProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedMemberForProject) return;
+    if (!selectedMemberForProject || !activeOrgId) return;
 
     const targetProj = projects.find((p) => p.id === chosenProjectId) || projects[0];
     if (!targetProj) {
@@ -150,24 +183,33 @@ export const MembersView: React.FC = () => {
       return;
     }
 
-    const memberId = selectedMemberForProject.user?.id || selectedMemberForProject.userId || selectedMemberForProject.id;
-    const memberName = selectedMemberForProject.user?.name || 'Member';
+    const memberOrgId = selectedMemberForProject.id;
+    const memberUserId = selectedMemberForProject.user?.id || selectedMemberForProject.userId;
+    const memberName = selectedMemberForProject.user?.name || selectedMemberForProject.user?.fullName || 'Member';
 
-    const updatedTeam = targetProj.teamMembers?.some((m) => m.id === memberId)
-      ? targetProj.teamMembers
-      : [...(targetProj.teamMembers || []), { id: memberId, name: memberName }];
+    try {
+      await projectsApi.addProjectMember(activeOrgId, targetProj.id, memberOrgId);
 
-    useWorkspaceStore.setState((state) => ({
-      projects: state.projects.map((p) => (p.id === targetProj.id ? { ...p, teamMembers: updatedTeam } : p)),
-    }));
+      const updatedTeam = [
+        ...(targetProj.teamMembers || []).filter((m) => m.id !== memberUserId),
+        { id: memberUserId, name: memberName, avatarUrl: selectedMemberForProject.user?.avatarUrl },
+      ];
 
-    setIsAssignModalOpen(false);
-    showSnack(
-      isAr
-        ? `تم تعيين ${memberName} بنجاح لمشروع: ${targetProj.name}`
-        : `${memberName} successfully assigned to project: ${targetProj.name}!`,
-      'success'
-    );
+      useWorkspaceStore.setState((state) => ({
+        projects: state.projects.map((p) => (p.id === targetProj.id ? { ...p, teamMembers: updatedTeam } : p)),
+      }));
+
+      setIsAssignModalOpen(false);
+      setSelectedMemberForProject(null);
+      showSnack(
+        isAr
+          ? `تم تعيين ${memberName} بنجاح لمشروع: ${targetProj.name}`
+          : `${memberName} successfully assigned to project: ${targetProj.name}!`,
+        'success'
+      );
+    } catch (err: any) {
+      showSnack(err.message || 'Failed to assign member to project', 'error');
+    }
   };
 
   return (

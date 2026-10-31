@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { showSnack } from '@/store/snackbarStore';
 import { TaskStatus, Task, Project } from '@/types';
+import { projectsApi } from '@/lib/api';
 import { JiraBacklogView } from './JiraBacklogView';
 import {
   Plus,
@@ -214,29 +215,43 @@ export const ProjectsBoardView: React.FC = () => {
   };
 
   // Requirement 21: Org Owner invite member to project
-  const handleInviteMemberToProject = () => {
+  const handleInviteMemberToProject = async () => {
     if (!selectedMemberToInvite) return;
-    const memberToAdd = members.find((m) => m.id === selectedMemberToInvite);
-    if (!memberToAdd || !selectedProject) return;
+    const memberToAdd = members.find((m) => m.id === selectedMemberToInvite || m.userId === selectedMemberToInvite);
+    if (!memberToAdd || !selectedProject || !activeOrgId) return;
 
-    if (!selectedProject.teamMembers) {
-      selectedProject.teamMembers = [];
+    try {
+      await projectsApi.addProjectMember(activeOrgId, selectedProject.id, memberToAdd.id);
+
+      const memberName = memberToAdd.user?.name || (memberToAdd.user as any)?.fullName || 'Member';
+      const updatedMembers = [
+        ...(selectedProject.teamMembers || []).filter((m) => m.id !== memberToAdd.userId),
+        {
+          id: memberToAdd.userId,
+          name: memberName,
+          avatarUrl: memberToAdd.user?.avatarUrl,
+        },
+      ];
+
+      selectedProject.teamMembers = updatedMembers;
+
+      useWorkspaceStore.setState((state) => ({
+        projects: state.projects.map((p) =>
+          p.id === selectedProject.id ? { ...p, teamMembers: updatedMembers } : p
+        ),
+      }));
+
+      setIsInviteProjectMemberOpen(false);
+      setSelectedMemberToInvite('');
+      showSnack(
+        isAr
+          ? `تمت إضافة ${memberName} إلى المشروع ${selectedProject.name}`
+          : `Added ${memberName} to ${selectedProject.name}!`,
+        'success'
+      );
+    } catch (err: any) {
+      showSnack(err.message || 'Failed to add member to project', 'error');
     }
-
-    selectedProject.teamMembers.push({
-      id: memberToAdd.userId,
-      name: memberToAdd.user?.name || 'Member',
-      avatarUrl: memberToAdd.user?.avatarUrl,
-    });
-
-    setIsInviteProjectMemberOpen(false);
-    setSelectedMemberToInvite('');
-    showSnack(
-      isAr
-        ? `تمت إضافة ${memberToAdd.user?.name} إلى المشروع ${selectedProject.name}`
-        : `Added ${memberToAdd.user?.name} to ${selectedProject.name}!`,
-      'success'
-    );
   };
 
   // Requirement 22: Add project file (open to any project member)

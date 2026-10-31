@@ -71,9 +71,24 @@ export const organizationsApi = {
       method: 'PATCH',
       body: JSON.stringify({ role }),
     }),
+  updateMemberStatus: (orgId: string, memberId: string, status: string) =>
+    request<any>(`/organizations/${orgId}/members/${memberId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
   removeMember: (orgId: string, memberId: string) =>
     request<any>(`/organizations/${orgId}/members/${memberId}`, {
       method: 'DELETE',
+    }),
+  revokeInvitation: (orgId: string, invitationId: string) =>
+    request<any>(`/organizations/${orgId}/invitations/${invitationId}`, {
+      method: 'DELETE',
+    }),
+  getSettings: (orgId: string) => request<any>(`/organizations/${orgId}/settings`),
+  updateSettings: (orgId: string, data: any) =>
+    request<any>(`/organizations/${orgId}/settings`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
     }),
 };
 
@@ -84,6 +99,59 @@ export const projectsApi = {
     request<any>(`/organizations/${orgId}/projects`, {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+  getProjectMembers: (orgId: string, projectId: string) =>
+    request<any[]>(`/organizations/${orgId}/projects/${projectId}/members`),
+  addProjectMember: (orgId: string, projectId: string, memberId: string) =>
+    request<any>(`/organizations/${orgId}/projects/${projectId}/members`, {
+      method: 'POST',
+      body: JSON.stringify({ memberId }),
+    }),
+  removeProjectMember: (orgId: string, projectId: string, memberId: string) =>
+    request<any>(`/organizations/${orgId}/projects/${projectId}/members/${memberId}`, {
+      method: 'DELETE',
+    }),
+};
+
+// ─── Teams API ────────────────────────────────────────────────────────────────
+export const teamsApi = {
+  getTeams: (orgId: string) => request<any[]>(`/organizations/${orgId}/teams`),
+  createTeam: (orgId: string, data: { name: string; description?: string }) =>
+    request<any>(`/organizations/${orgId}/teams`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  addTeamMember: (orgId: string, teamId: string, memberId: string) =>
+    request<any>(`/organizations/${orgId}/teams/${teamId}/members`, {
+      method: 'POST',
+      body: JSON.stringify({ memberId }),
+    }),
+  removeTeamMember: (orgId: string, teamId: string, memberId: string) =>
+    request<any>(`/organizations/${orgId}/teams/${teamId}/members/${memberId}`, {
+      method: 'DELETE',
+    }),
+};
+
+// ─── Calendar API ─────────────────────────────────────────────────────────────
+export const calendarApi = {
+  getMeetings: (orgId: string) => request<any[]>(`/organizations/${orgId}/calendar/meetings`),
+  createMeeting: (orgId: string, data: { title: string; description?: string; startTime: string; endTime: string; meetingUrl?: string }) =>
+    request<any>(`/organizations/${orgId}/calendar/meetings`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+};
+
+// ─── Notifications API ────────────────────────────────────────────────────────
+export const notificationsApi = {
+  getNotifications: () => request<any[]>('/notifications'),
+  markAsRead: (id: string) =>
+    request<any>(`/notifications/${id}/read`, {
+      method: 'PATCH',
+    }),
+  markAllAsRead: () =>
+    request<any>('/notifications/read-all', {
+      method: 'PATCH',
     }),
 };
 
