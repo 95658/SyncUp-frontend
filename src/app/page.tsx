@@ -1,10 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { ArrowRight, User } from 'lucide-react';
 import { useUIStore } from '@/store/uiStore';
-import { useAuthStore } from '@/store/authStore';
 import { LandingNavbar } from '@/components/landing/LandingNavbar';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { FeatureShowcase } from '@/components/landing/FeatureShowcase';
@@ -16,15 +13,13 @@ import { RequestAccessModal } from '@/components/landing/RequestAccessModal';
 
 export default function LandingPage() {
   const { theme, language, initUIFromStorage } = useUIStore();
-  const { isAuthenticated, currentUser, checkAuth } = useAuthStore();
   const [requestModalOpen, setRequestModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     initUIFromStorage();
-    checkAuth();
-  }, [initUIFromStorage, checkAuth]);
+  }, [initUIFromStorage]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -36,6 +31,7 @@ export default function LandingPage() {
 
   return (
     <div
+      className="landing-grid-bg"
       style={{
         minHeight: '100vh',
         background: 'var(--bg-app)',
@@ -43,59 +39,51 @@ export default function LandingPage() {
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        transition: 'background-color 0.2s ease, color 0.2s ease',
+        transition: 'background-color 0.25s ease, color 0.25s ease',
+        overflowX: 'hidden',
       }}
     >
-      {/* Top Banner if already authenticated */}
-      {mounted && isAuthenticated && currentUser && (
-        <div
-          style={{
-            background: 'var(--primary-gradient)',
-            color: '#ffffff',
-            padding: '8px 20px',
-            fontSize: '13px',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            textAlign: 'center',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <User size={14} />
-            <span>
-              {language === 'ar'
-                ? `مرحباً ${currentUser.name || 'بك'}! أنت مسجل الدخول حالياً`
-                : `Logged in as ${currentUser.name || currentUser.email}`}
-            </span>
-          </div>
-          <Link
-            href="/workspace"
-            style={{
-              background: '#ffffff',
-              color: 'var(--primary)',
-              padding: '3px 12px',
-              borderRadius: 'var(--radius-full)',
-              fontWeight: 700,
-              fontSize: '12px',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            <span>{language === 'ar' ? 'الدخول لمساحة العمل' : 'Enter Workspace'}</span>
-            <ArrowRight size={12} style={{ transform: language === 'ar' ? 'scaleX(-1)' : 'none' }} />
-          </Link>
-        </div>
-      )}
+      {/* Animated subtle ambient light beams */}
+      <div
+        style={{
+          position: 'fixed',
+          top: '-15%',
+          left: '20%',
+          width: '50vw',
+          height: '50vw',
+          maxWidth: '650px',
+          maxHeight: '650px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(37,99,235,0.14) 0%, rgba(79,70,229,0.06) 45%, rgba(0,0,0,0) 70%)',
+          filter: 'blur(80px)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+        aria-hidden="true"
+      />
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '10%',
+          right: '15%',
+          width: '40vw',
+          height: '40vw',
+          maxWidth: '500px',
+          maxHeight: '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(139,92,246,0.12) 0%, rgba(37,99,235,0.04) 50%, rgba(0,0,0,0) 70%)',
+          filter: 'blur(90px)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+        aria-hidden="true"
+      />
 
       {/* Main Navbar */}
       <LandingNavbar onRequestAccess={() => setRequestModalOpen(true)} />
 
       {/* Main Content Sections */}
-      <main style={{ flex: 1 }}>
+      <main style={{ flex: 1, position: 'relative', zIndex: 1 }}>
         <HeroSection onRequestAccess={() => setRequestModalOpen(true)} />
         <FeatureShowcase />
         <ComparisonSection />

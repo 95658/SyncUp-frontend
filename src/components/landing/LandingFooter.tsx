@@ -2,10 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Layers, Sparkles, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Layers, Sparkles, ArrowRight, ShieldCheck, CheckCircle2, LogIn } from 'lucide-react';
 import { landingTranslations } from '@/lib/landingI18n';
 import { useUIStore } from '@/store/uiStore';
-import { useAuthStore } from '@/store/authStore';
 
 interface LandingFooterProps {
   onRequestAccess: () => void;
@@ -13,7 +12,6 @@ interface LandingFooterProps {
 
 export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
   const { language } = useUIStore();
-  const { isAuthenticated } = useAuthStore();
   const t = landingTranslations[language].footer;
   const cta = landingTranslations[language].ctaBanner;
   const isRtl = language === 'ar';
@@ -23,48 +21,63 @@ export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
       style={{
         borderTop: '1px solid var(--border-light)',
         background: 'var(--bg-surface)',
-        paddingTop: '64px',
+        paddingTop: '68px',
         paddingBottom: '48px',
       }}
     >
-      <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '0 20px' }}>
-        {/* Pre-Footer CTA Banner */}
+      <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '0 24px' }}>
+        {/* Pre-Footer CTA Banner with Glowing Animation */}
         <div
           style={{
-            borderRadius: '24px',
+            borderRadius: '26px',
             background: 'var(--primary-gradient)',
             color: '#ffffff',
-            padding: '48px 36px',
+            padding: '52px 36px',
             textAlign: 'center',
-            marginBottom: '64px',
-            boxShadow: '0 16px 40px rgba(37, 99, 235, 0.28)',
+            marginBottom: '68px',
+            boxShadow: '0 20px 48px rgba(37, 99, 235, 0.32)',
             position: 'relative',
             overflow: 'hidden',
           }}
+          className="hover-lift"
         >
+          {/* Subtle moving light sheen */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '-50%',
+              left: '-50%',
+              width: '200%',
+              height: '200%',
+              background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 60%)',
+              pointerEvents: 'none',
+            }}
+          />
+
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '5px 14px',
+              padding: '6px 16px',
               borderRadius: 'var(--radius-full)',
-              background: 'rgba(255, 255, 255, 0.18)',
-              fontSize: '12.5px',
+              background: 'rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(8px)',
+              fontSize: '13px',
               fontWeight: 700,
-              marginBottom: '16px',
+              marginBottom: '18px',
             }}
           >
-            <Sparkles size={14} />
+            <Sparkles size={15} />
             <span>{cta.badge}</span>
           </div>
 
           <h3
             style={{
-              fontSize: 'clamp(26px, 3.6vw, 38px)',
+              fontSize: 'clamp(28px, 3.8vw, 42px)',
               fontWeight: 900,
-              maxWidth: '720px',
-              margin: '0 auto 14px',
+              maxWidth: '760px',
+              margin: '0 auto 16px',
               lineHeight: 1.25,
             }}
           >
@@ -73,11 +86,11 @@ export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
 
           <p
             style={{
-              fontSize: '15.5px',
-              opacity: 0.9,
-              maxWidth: '580px',
-              margin: '0 auto 30px',
-              lineHeight: 1.6,
+              fontSize: '16px',
+              opacity: 0.92,
+              maxWidth: '600px',
+              margin: '0 auto 34px',
+              lineHeight: 1.65,
             }}
           >
             {cta.subtitle}
@@ -88,61 +101,51 @@ export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '14px',
+              gap: '16px',
               flexWrap: 'wrap',
             }}
           >
-            {isAuthenticated ? (
-              <Link
-                href="/workspace"
-                style={{
-                  padding: '13px 30px',
-                  borderRadius: '12px',
-                  background: '#ffffff',
-                  color: 'var(--primary)',
-                  fontWeight: 800,
-                  fontSize: '14.5px',
-                  textDecoration: 'none',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                }}
-              >
-                {language === 'ar' ? 'الدخول لمساحة عملك ←' : 'Open Your Workspace →'}
-              </Link>
-            ) : (
-              <>
-                <button
-                  onClick={onRequestAccess}
-                  style={{
-                    padding: '13px 28px',
-                    borderRadius: '12px',
-                    border: 'none',
-                    background: '#ffffff',
-                    color: 'var(--primary)',
-                    fontWeight: 800,
-                    fontSize: '14.5px',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  }}
-                >
-                  {cta.requestButton}
-                </button>
-                <Link
-                  href="/auth/login"
-                  style={{
-                    padding: '12px 24px',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(255,255,255,0.4)',
-                    background: 'rgba(255,255,255,0.1)',
-                    color: '#ffffff',
-                    fontWeight: 700,
-                    fontSize: '14.5px',
-                    textDecoration: 'none',
-                  }}
-                >
-                  {cta.loginButton}
-                </Link>
-              </>
-            )}
+            <button
+              onClick={onRequestAccess}
+              style={{
+                padding: '14px 32px',
+                borderRadius: '12px',
+                border: 'none',
+                background: '#ffffff',
+                color: 'var(--primary)',
+                fontWeight: 800,
+                fontSize: '15px',
+                cursor: 'pointer',
+                boxShadow: '0 6px 18px rgba(0,0,0,0.15)',
+                transition: 'transform 0.2s ease',
+              }}
+              className="hover-lift"
+            >
+              {cta.requestButton}
+            </button>
+
+            <Link
+              href="/auth/login"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '13px 26px',
+                borderRadius: '12px',
+                border: '1.5px solid rgba(255,255,255,0.45)',
+                background: 'rgba(255,255,255,0.12)',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '15px',
+                textDecoration: 'none',
+                backdropFilter: 'blur(8px)',
+                transition: 'all 0.2s ease',
+              }}
+              className="hover-lift"
+            >
+              <LogIn size={16} />
+              <span>{cta.loginButton}</span>
+            </Link>
           </div>
         </div>
 
@@ -160,8 +163,8 @@ export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
               <div
                 style={{
-                  width: '34px',
-                  height: '34px',
+                  width: '36px',
+                  height: '36px',
                   borderRadius: '10px',
                   background: 'var(--primary-gradient)',
                   display: 'flex',
@@ -170,9 +173,9 @@ export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
                   color: '#ffffff',
                 }}
               >
-                <Layers size={18} />
+                <Layers size={20} />
               </div>
-              <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main)' }}>SyncUp</span>
+              <span style={{ fontSize: '19px', fontWeight: 900, color: 'var(--text-main)' }}>SyncUp</span>
             </div>
             <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '320px', margin: '0 0 16px' }}>
               {t.brandDesc}
@@ -192,7 +195,7 @@ export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
                 color: 'var(--success-text)',
               }}
             >
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--success)' }} />
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--success)' }} className="animate-pulse-ring" />
               <span>{t.platformStatus}</span>
             </div>
           </div>
@@ -203,11 +206,11 @@ export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
               {t.linksTitle}
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13.5px', color: 'var(--text-secondary)' }}>
-              <a href="#features" style={{ textDecoration: 'none' }}>Features</a>
-              <a href="#comparison" style={{ textDecoration: 'none' }}>Comparison</a>
-              <a href="#workflow" style={{ textDecoration: 'none' }}>Workflow</a>
-              <a href="#security" style={{ textDecoration: 'none' }}>Security</a>
-              <a href="#faq" style={{ textDecoration: 'none' }}>FAQ</a>
+              <a href="#features" className="nav-link">Features</a>
+              <a href="#comparison" className="nav-link">Why SyncUp</a>
+              <a href="#workflow" className="nav-link">Workflow</a>
+              <a href="#security" className="nav-link">Security & Isolation</a>
+              <a href="#faq" className="nav-link">FAQ</a>
             </div>
           </div>
 
@@ -216,21 +219,21 @@ export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
             <h4 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '16px' }}>
               {t.securityTitle}
             </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '9px', fontSize: '13px', color: 'var(--text-secondary)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <CheckCircle2 size={14} style={{ color: 'var(--success)' }} />
+                <CheckCircle2 size={15} style={{ color: 'var(--success)' }} />
                 <span>Isolated PostgreSQL Schema / Tenant</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <CheckCircle2 size={14} style={{ color: 'var(--success)' }} />
+                <CheckCircle2 size={15} style={{ color: 'var(--success)' }} />
                 <span>Invitation-Only Access Tokens</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <CheckCircle2 size={14} style={{ color: 'var(--success)' }} />
+                <CheckCircle2 size={15} style={{ color: 'var(--success)' }} />
                 <span>Socket.IO Real-time Channels</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <CheckCircle2 size={14} style={{ color: 'var(--success)' }} />
+                <CheckCircle2 size={15} style={{ color: 'var(--success)' }} />
                 <span>Platform Owner RBAC Controls</span>
               </div>
             </div>

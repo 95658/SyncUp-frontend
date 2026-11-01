@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Layers, Moon, Sun, Globe, ArrowRight, Menu, X, Shield, Sparkles } from 'lucide-react';
+import { Layers, Moon, Sun, Globe, ArrowRight, Menu, X, Sparkles, LogIn } from 'lucide-react';
 import { useUIStore } from '@/store/uiStore';
-import { useAuthStore } from '@/store/authStore';
 import { landingTranslations } from '@/lib/landingI18n';
 
 interface LandingNavbarProps {
@@ -13,7 +12,6 @@ interface LandingNavbarProps {
 
 export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
   const { theme, language, toggleTheme, setLanguage } = useUIStore();
-  const { isAuthenticated, currentUser } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const t = landingTranslations[language].nav;
@@ -26,24 +24,24 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
         top: 0,
         zIndex: 100,
         width: '100%',
-        backdropFilter: 'blur(16px)',
-        background: theme === 'dark' ? 'rgba(9, 13, 22, 0.82)' : 'rgba(255, 255, 255, 0.85)',
+        backdropFilter: 'blur(20px)',
+        background: theme === 'dark' ? 'rgba(9, 13, 22, 0.85)' : 'rgba(255, 255, 255, 0.88)',
         borderBottom: '1px solid var(--border-light)',
-        transition: 'background-color 0.2s ease',
+        transition: 'background-color 0.25s ease, border-color 0.25s ease',
       }}
     >
       <div
         style={{
           maxWidth: '1240px',
           margin: '0 auto',
-          padding: '0 20px',
-          height: '68px',
+          padding: '0 24px',
+          height: '70px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}
       >
-        {/* Brand Logo */}
+        {/* Brand Logo with glowing hover */}
         <Link
           href="/"
           style={{
@@ -52,27 +50,30 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
             gap: '12px',
             textDecoration: 'none',
           }}
+          className="brand-logo-group"
         >
           <div
             style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '11px',
+              width: '40px',
+              height: '40px',
+              borderRadius: '12px',
               background: 'var(--primary-gradient)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#ffffff',
               boxShadow: 'var(--primary-glow)',
+              transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
+            className="logo-icon-box"
           >
-            <Layers size={20} />
+            <Layers size={22} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span
               style={{
-                fontSize: '19px',
-                fontWeight: 800,
+                fontSize: '20px',
+                fontWeight: 900,
                 color: 'var(--text-main)',
                 letterSpacing: '-0.4px',
                 lineHeight: 1.1,
@@ -84,9 +85,9 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
               style={{
                 fontSize: '11px',
                 color: 'var(--text-muted)',
-                fontWeight: 600,
+                fontWeight: 700,
                 textTransform: 'uppercase',
-                letterSpacing: '0.6px',
+                letterSpacing: '0.8px',
               }}
             >
               {t.brandTagline}
@@ -94,73 +95,33 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
           </div>
         </Link>
 
-        {/* Desktop Navigation Links */}
+        {/* Desktop Navigation Links with animated hover underline */}
         <nav
           style={{
             display: 'none',
             alignItems: 'center',
-            gap: '28px',
+            gap: '32px',
           }}
           className="desktop-nav"
         >
-          <a
-            href="#features"
-            style={{
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--text-secondary)',
-              transition: 'color 0.15s ease',
-            }}
-          >
+          <a href="#features" className="nav-link">
             {t.features}
           </a>
-          <a
-            href="#comparison"
-            style={{
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--text-secondary)',
-              transition: 'color 0.15s ease',
-            }}
-          >
+          <a href="#comparison" className="nav-link">
             {t.comparison}
           </a>
-          <a
-            href="#workflow"
-            style={{
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--text-secondary)',
-              transition: 'color 0.15s ease',
-            }}
-          >
+          <a href="#workflow" className="nav-link">
             {t.workflow}
           </a>
-          <a
-            href="#security"
-            style={{
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--text-secondary)',
-              transition: 'color 0.15s ease',
-            }}
-          >
+          <a href="#security" className="nav-link">
             {t.security}
           </a>
-          <a
-            href="#faq"
-            style={{
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--text-secondary)',
-              transition: 'color 0.15s ease',
-            }}
-          >
+          <a href="#faq" className="nav-link">
             {t.faq}
           </a>
         </nav>
 
-        {/* Controls: Lang + Theme + Auth */}
+        {/* Controls: Lang + Theme + Login CTA */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {/* Language Toggle */}
           <button
@@ -170,19 +131,20 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '7px 12px',
-              borderRadius: '9px',
+              padding: '8px 14px',
+              borderRadius: '10px',
               border: '1px solid var(--border-light)',
               background: 'var(--bg-surface)',
               color: 'var(--text-secondary)',
-              fontSize: '12.5px',
+              fontSize: '13px',
               fontWeight: 700,
               cursor: 'pointer',
-              transition: 'all 0.15s ease',
+              transition: 'all 0.2s ease',
             }}
+            className="hover-lift"
           >
-            <Globe size={14} />
-            <span>{language === 'en' ? 'العربية' : 'EN'}</span>
+            <Globe size={15} />
+            <span>{language === 'en' ? 'العربية' : 'English'}</span>
           </button>
 
           {/* Theme Toggle */}
@@ -190,9 +152,9 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
             onClick={toggleTheme}
             title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
             style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '9px',
+              width: '38px',
+              height: '38px',
+              borderRadius: '10px',
               border: '1px solid var(--border-light)',
               background: 'var(--bg-surface)',
               color: 'var(--text-secondary)',
@@ -200,74 +162,60 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              transition: 'all 0.15s ease',
+              transition: 'all 0.2s ease',
             }}
+            className="hover-lift"
           >
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
           </button>
 
-          {/* User Auth Buttons */}
-          {isAuthenticated ? (
+          {/* Primary Action Buttons: Always routes to Login or Request Access */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Link
-              href="/workspace"
+              href="/auth/login"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '9px 18px',
+                gap: '6px',
+                padding: '9px 16px',
                 borderRadius: '10px',
+                border: '1px solid var(--border-light)',
+                background: 'var(--bg-surface)',
+                color: 'var(--text-main)',
+                fontWeight: 700,
+                fontSize: '13.5px',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+              }}
+              className="hover-lift"
+            >
+              <LogIn size={15} />
+              <span>{t.signIn}</span>
+            </Link>
+
+            <button
+              onClick={onRequestAccess}
+              style={{
+                display: 'none',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 18px',
+                borderRadius: '10px',
+                border: 'none',
                 background: 'var(--primary-gradient)',
                 color: '#ffffff',
                 fontWeight: 700,
                 fontSize: '13.5px',
-                textDecoration: 'none',
+                cursor: 'pointer',
                 boxShadow: 'var(--primary-glow)',
-                transition: 'transform 0.15s ease',
+                transition: 'all 0.2s ease',
               }}
+              className="desktop-cta hover-lift"
             >
-              <span>{t.openWorkspace}</span>
-            </Link>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Link
-                href="/auth/login"
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: '9px',
-                  border: '1px solid var(--border-light)',
-                  background: 'var(--bg-surface)',
-                  color: 'var(--text-main)',
-                  fontWeight: 600,
-                  fontSize: '13px',
-                  textDecoration: 'none',
-                  transition: 'background-color 0.15s ease',
-                }}
-              >
-                {t.signIn}
-              </Link>
-              <button
-                onClick={onRequestAccess}
-                style={{
-                  display: 'none',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '9px 16px',
-                  borderRadius: '10px',
-                  border: 'none',
-                  background: 'var(--primary-gradient)',
-                  color: '#ffffff',
-                  fontWeight: 700,
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  boxShadow: 'var(--primary-glow)',
-                }}
-                className="desktop-cta"
-              >
-                <Sparkles size={14} />
-                <span>{t.requestAccess}</span>
-              </button>
-            </div>
-          )}
+              <Sparkles size={15} />
+              <span>{t.requestAccess}</span>
+            </button>
+          </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -282,7 +230,7 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
             }}
             className="mobile-toggle"
           >
-            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
@@ -291,79 +239,108 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
       {mobileMenuOpen && (
         <div
           style={{
-            padding: '16px 20px 24px',
+            padding: '20px 24px 28px',
             background: 'var(--bg-surface)',
             borderBottom: '1px solid var(--border-light)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '14px',
+            gap: '16px',
           }}
+          className="animate-slide-down"
         >
           <a
             href="#features"
             onClick={() => setMobileMenuOpen(false)}
-            style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}
+            style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-main)' }}
           >
             {t.features}
           </a>
           <a
             href="#comparison"
             onClick={() => setMobileMenuOpen(false)}
-            style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}
+            style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-main)' }}
           >
             {t.comparison}
           </a>
           <a
             href="#workflow"
             onClick={() => setMobileMenuOpen(false)}
-            style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}
+            style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-main)' }}
           >
             {t.workflow}
           </a>
           <a
             href="#security"
             onClick={() => setMobileMenuOpen(false)}
-            style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}
+            style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-main)' }}
           >
             {t.security}
           </a>
           <a
             href="#faq"
             onClick={() => setMobileMenuOpen(false)}
-            style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}
+            style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-main)' }}
           >
             {t.faq}
           </a>
-          {!isAuthenticated && (
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onRequestAccess();
-              }}
-              style={{
-                marginTop: '8px',
-                width: '100%',
-                padding: '12px',
-                borderRadius: '10px',
-                border: 'none',
-                background: 'var(--primary-gradient)',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-              }}
-            >
-              <Sparkles size={16} />
-              <span>{t.requestAccess}</span>
-            </button>
-          )}
+
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              onRequestAccess();
+            }}
+            style={{
+              marginTop: '8px',
+              width: '100%',
+              padding: '12px',
+              borderRadius: '10px',
+              border: 'none',
+              background: 'var(--primary-gradient)',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: '14.5px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              cursor: 'pointer',
+            }}
+          >
+            <Sparkles size={16} />
+            <span>{t.requestAccess}</span>
+          </button>
         </div>
       )}
 
       <style>{`
+        .brand-logo-group:hover .logo-icon-box {
+          transform: scale(1.06) rotate(-3deg);
+        }
+        .nav-link {
+          font-size: 14.5px;
+          font-weight: 600;
+          color: var(--text-secondary);
+          transition: color 0.15s ease;
+          position: relative;
+          text-decoration: none;
+        }
+        .nav-link:hover {
+          color: var(--primary);
+        }
+        .nav-link::after {
+          content: '';
+          position: absolute;
+          bottom: -4px;
+          left: 0;
+          width: 0%;
+          height: 2px;
+          background: var(--primary);
+          transition: width 0.2s ease;
+          border-radius: 2px;
+        }
+        .nav-link:hover::after {
+          width: 100%;
+        }
         @media (min-width: 860px) {
           .desktop-nav {
             display: flex !important;
