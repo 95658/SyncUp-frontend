@@ -58,7 +58,7 @@ export default function LoginPage() {
         loginUser(user, 'PLATFORM_OWNER', res.accessToken);
         setCurrentView('super-admin');
         await syncFromBackend();
-        router.replace('/');
+        router.replace('/workspace');
         return;
       } else {
         const user = {
@@ -76,7 +76,7 @@ export default function LoginPage() {
         if (currentOrgs.length > 0) {
           useWorkspaceStore.getState().setActiveOrgId(currentOrgs[0].id);
         }
-        router.replace('/');
+        router.replace('/workspace');
         return;
       }
     } catch (err: any) {
@@ -101,7 +101,7 @@ export default function LoginPage() {
           dummyToken
         );
         setCurrentView('super-admin');
-        router.replace('/');
+        router.replace('/workspace');
         return;
       } else if (isZiad && loginPassword === 'Libro#Ziad2026!Secured') {
         const dummyToken = 'mock-jwt-token-ziad-' + Date.now();
@@ -122,7 +122,7 @@ export default function LoginPage() {
         if (currentOrgs.length > 0) {
           useWorkspaceStore.getState().setActiveOrgId(currentOrgs[0].id);
         }
-        router.replace('/');
+        router.replace('/workspace');
         return;
       } else if (isAhmed && loginPassword !== 'SyncUp#Ahmed2026!Secured') {
         setError('Invalid email or password');
@@ -178,7 +178,7 @@ export default function LoginPage() {
               localStorage.setItem('syncup_active_org_id', matchedOrg.id);
               localStorage.setItem('syncup_current_view', 'dashboard');
             }
-            router.replace('/');
+            router.replace('/workspace');
             return;
           } else {
             setError('Invalid email or password');
@@ -202,7 +202,7 @@ export default function LoginPage() {
             dummyToken
           );
           setCurrentView('dashboard');
-          router.replace('/');
+          router.replace('/workspace');
           return;
         } else {
           setError('Invalid email or password');

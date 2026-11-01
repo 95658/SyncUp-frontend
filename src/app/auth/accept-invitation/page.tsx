@@ -28,7 +28,7 @@ export default function AcceptInvitationPage() {
       setLoading(false);
       setSuccess(true);
       setTimeout(() => {
-        router.push('/');
+        router.push('/workspace');
       }, 1200);
     }, 800);
   };
