@@ -534,15 +534,21 @@ export const SuperAdminView: React.FC = () => {
                         width: '36px',
                         height: '36px',
                         borderRadius: '10px',
-                        background: '#0284c7',
+                        background: org.logoUrl ? 'transparent' : '#0284c7',
                         color: '#fff',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontWeight: 800,
                         fontSize: '16px',
+                        overflow: 'hidden',
+                        border: org.logoUrl ? '1px solid #e2e8f0' : 'none',
                       }}>
-                        {org.name.charAt(0)}
+                        {org.logoUrl ? (
+                          <img src={org.logoUrl} alt={org.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          org.name.charAt(0)
+                        )}
                       </div>
                       <div>
                         <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>{org.name}</div>
@@ -645,8 +651,12 @@ export const SuperAdminView: React.FC = () => {
                   <tr key={org.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.15s ease' }}>
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#0284c7', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '14px' }}>
-                          {org.name.charAt(0)}
+                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: org.logoUrl ? 'transparent' : '#0284c7', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '14px', overflow: 'hidden', border: org.logoUrl ? '1px solid #e2e8f0' : 'none' }}>
+                          {org.logoUrl ? (
+                            <img src={org.logoUrl} alt={org.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            org.name.charAt(0)
+                          )}
                         </div>
                         <div>
                           <div style={{ fontWeight: 700, color: '#0f172a' }}>{org.name}</div>

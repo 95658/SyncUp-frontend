@@ -85,7 +85,20 @@ export const OrgSettingsView: React.FC = () => {
           if (data.slug) setOrgSlug(data.slug);
           if (data.description !== undefined) setDescription(data.description || '');
           if (data.website !== undefined) setWebsite(data.website || '');
-          if (data.logoUrl !== undefined) setLogoUrl(data.logoUrl || '');
+          if (data.logoUrl !== undefined) {
+            setLogoUrl(data.logoUrl || '');
+            if (data.logoUrl && data.logoUrl !== currentOrg.logoUrl) {
+              useWorkspaceStore.setState((state) => {
+                const updated = state.organizations.map((o) =>
+                  o.id === currentOrg.id ? { ...o, logoUrl: data.logoUrl } : o
+                );
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('syncup_orgs', JSON.stringify(updated));
+                }
+                return { organizations: updated };
+              });
+            }
+          }
           if (data.industry) setIndustry(data.industry);
           if (data.companySize) setCompanySize(data.companySize);
           if (data.defaultSprintDuration) setDefaultSprintDuration(data.defaultSprintDuration);

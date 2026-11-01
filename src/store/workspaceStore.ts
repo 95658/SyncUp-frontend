@@ -388,6 +388,11 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         id: o.id,
         name: o.name,
         slug: o.slug,
+        logoUrl: o.logoUrl || undefined,
+        description: o.description || undefined,
+        website: o.website || undefined,
+        industry: o.industry || undefined,
+        companySize: o.companySize || undefined,
         adminName: o.members?.[0]?.user?.fullName || 'Organization Admin',
         adminEmail: o.members?.[0]?.user?.email || o.invitations?.[0]?.email || 'admin@' + o.slug + '.com',
         memberCount: o._count?.members || 1,
@@ -396,12 +401,20 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         createdAt: new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       }));
 
-      // Combine with locally created orgs
+      // Combine with locally created/customized orgs (preserving logoUrl and branding)
       const localOrgs = loadFromStorage<Organization[]>('syncup_orgs', []);
       const mergedOrgsMap = new Map<string, Organization>();
       localOrgs.forEach((o) => mergedOrgsMap.set(o.id, o));
-      formattedOrgs.forEach((o) => mergedOrgsMap.set(o.id, o));
+      formattedOrgs.forEach((o) => {
+        const existing = mergedOrgsMap.get(o.id);
+        mergedOrgsMap.set(o.id, {
+          ...existing,
+          ...o,
+          logoUrl: o.logoUrl || existing?.logoUrl,
+        });
+      });
       const allOrgs = Array.from(mergedOrgsMap.values());
+      saveToStorage('syncup_orgs', allOrgs);
 
       let targetOrgId = preferredOrgId || get().activeOrgId || (typeof window !== 'undefined' ? localStorage.getItem('syncup_active_org_id') : '') || '';
       if (!targetOrgId && allOrgs.length > 0) {

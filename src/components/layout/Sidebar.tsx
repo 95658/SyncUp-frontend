@@ -215,10 +215,10 @@ export const Sidebar: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '9px', overflow: 'hidden' }}>
                 <div
                   style={{
-                    width: '26px',
-                    height: '26px',
+                    width: '28px',
+                    height: '28px',
                     borderRadius: '7px',
-                    background: 'var(--primary)',
+                    background: currentOrg.logoUrl ? 'var(--bg-surface)' : 'var(--primary)',
                     color: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
@@ -226,9 +226,19 @@ export const Sidebar: React.FC = () => {
                     fontWeight: 800,
                     fontSize: '13px',
                     flexShrink: 0,
+                    overflow: 'hidden',
+                    border: currentOrg.logoUrl ? '1px solid var(--border-light)' : 'none',
                   }}
                 >
-                  {currentOrg.name?.charAt(0) || 'O'}
+                  {currentOrg.logoUrl ? (
+                    <img
+                      src={currentOrg.logoUrl}
+                      alt={currentOrg.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  ) : (
+                    currentOrg.name?.charAt(0) || 'O'
+                  )}
                 </div>
                 <div style={{ textAlign: isAr ? 'right' : 'left', overflow: 'hidden' }}>
                   <div
