@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, Lock, Mail, ArrowRight, Building2, Eye, EyeOff, Check, Copy } from 'lucide-react';
+import { Sparkles, Lock, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { authApi } from '@/lib/api/auth';
@@ -12,13 +12,11 @@ export default function LoginPage() {
   const { loginUser, logoutUser } = useAuthStore();
   const { setCurrentView, syncFromBackend } = useWorkspaceStore();
   
-  // Requirement 12: Default credentials for Platform Owner
-  const [email, setEmail] = useState('aabdelfatah732@gmail.com');
-  const [password, setPassword] = useState('SyncUp#Ahmed2026!Secured');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   // Requirement 1: Clear any stale session whenever the login page is reached
   // Disarm forward navigation so user cannot swipe forward back into the account without logging in
@@ -222,24 +220,6 @@ export default function LoginPage() {
     handleLogin(email, password);
   };
 
-  const loginAsPlatformOwner = () => {
-    setEmail('aabdelfatah732@gmail.com');
-    setPassword('SyncUp#Ahmed2026!Secured');
-    handleLogin('aabdelfatah732@gmail.com', 'SyncUp#Ahmed2026!Secured');
-  };
-
-  const loginAsOrgAdmin = () => {
-    setEmail('zghabour@gmail.com');
-    setPassword('Libro#Ziad2026!Secured');
-    handleLogin('zghabour@gmail.com', 'Libro#Ziad2026!Secured');
-  };
-
-  const copyCreds = (text: string, key: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedKey(key);
-    setTimeout(() => setCopiedKey(null), 2000);
-  };
-
   return (
     <div style={{
       minHeight: '100vh',
@@ -406,123 +386,6 @@ export default function LoginPage() {
             <ArrowRight size={17} />
           </button>
         </form>
-
-        {/* Requirement 12: Dual Demo Sign In (Platform Owner vs Org Admin) */}
-        <div style={{
-          marginTop: '22px',
-          paddingTop: '18px',
-          borderTop: '1px solid #f1f5f9',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px',
-        }}>
-          {/* Button 1: Platform Owner */}
-          <button
-            type="button"
-            onClick={loginAsPlatformOwner}
-            disabled={loading}
-            className="btn btn-secondary"
-            style={{
-              width: '100%',
-              fontSize: '12.5px',
-              padding: '10px 14px',
-              borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              background: '#f0f9ff',
-              border: '1px solid #bae6fd',
-              color: '#0369a1',
-              fontWeight: 800,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Building2 size={16} color="#0284c7" />
-            <span>1-Click Sign In: Platform Owner (Ahmed)</span>
-          </button>
-
-          {/* Button 2: Org Admin */}
-          <button
-            type="button"
-            onClick={loginAsOrgAdmin}
-            disabled={loading}
-            className="btn btn-secondary"
-            style={{
-              width: '100%',
-              fontSize: '12.5px',
-              padding: '10px 14px',
-              borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              background: '#f8fafc',
-              border: '1px solid #cbd5e1',
-              fontWeight: 700,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Building2 size={16} color="#475569" />
-            <span>1-Click Sign In: Org Admin (Ziad)</span>
-          </button>
-
-          {/* Quick Credential Reference Cards */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '6px',
-            marginTop: '4px',
-          }}>
-            <div style={{
-              padding: '8px 12px',
-              background: '#f0f9ff',
-              borderRadius: '8px',
-              border: '1px dashed #bae6fd',
-              fontSize: '11px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <div>
-                <span style={{ fontWeight: 800, color: '#0369a1' }}>Platform Owner: </span>
-                <span style={{ color: '#0284c7', fontFamily: 'var(--font-family-mono)' }}>aabdelfatah732@gmail.com</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => copyCreds('Email: aabdelfatah732@gmail.com\nPassword: SyncUp#Ahmed2026!Secured', 'owner')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: copiedKey === 'owner' ? '#10b981' : '#0284c7', fontSize: '10.5px', fontWeight: 800 }}
-              >
-                {copiedKey === 'owner' ? 'Copied!' : 'Copy'}
-              </button>
-            </div>
-
-            <div style={{
-              padding: '8px 12px',
-              background: '#f8fafc',
-              borderRadius: '8px',
-              border: '1px dashed #cbd5e1',
-              fontSize: '11px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <div>
-                <span style={{ fontWeight: 800, color: '#475569' }}>Org Admin: </span>
-                <span style={{ color: '#64748b', fontFamily: 'var(--font-family-mono)' }}>zghabour@gmail.com</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => copyCreds('Email: zghabour@gmail.com\nPassword: Libro#Ziad2026!Secured', 'admin')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: copiedKey === 'admin' ? '#10b981' : '#475569', fontSize: '10.5px', fontWeight: 800 }}
-              >
-                {copiedKey === 'admin' ? 'Copied!' : 'Copy'}
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div style={{
