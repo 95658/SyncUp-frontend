@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { showSnack } from '@/store/snackbarStore';
+import { superAdminApi } from '@/lib/api';
 import { Organization } from '@/types';
 import {
   Building2,
@@ -78,6 +79,59 @@ export const SuperAdminView: React.FC = () => {
   const [showEditingPassword, setShowEditingPassword] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [copiedModalKey, setCopiedModalKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLiveSuperAdminData = async () => {
+      try {
+        const [analytics, admins, users, invitations, logs] = await Promise.all([
+          superAdminApi.getAnalytics().catch(() => null),
+          superAdminApi.getAdministrators().catch(() => []),
+          superAdminApi.getUsers().catch(() => []),
+          superAdminApi.getInvitations().catch(() => []),
+          superAdminApi.getAuditLogs().catch(() => []),
+        ]);
+
+        if (!isMounted) return;
+
+        useWorkspaceStore.setState((state) => {
+          const orgsCount = Math.max(analytics?.totalOrganizations ?? 0, state.organizations.length);
+          const activeOrgsCount = Math.max(
+            analytics?.activeOrganizations ?? 0,
+            state.organizations.filter((o) => o.status === 'ACTIVE').length
+          );
+          const usersCount = Math.max(
+            analytics?.totalUsers ?? 0,
+            users?.length ?? 0,
+            state.organizations.reduce((acc, o) => acc + (o.memberCount || 1), 0)
+          );
+          const activeUsersCount = Math.max(analytics?.activeUsers ?? 0, usersCount);
+
+          return {
+            adminAnalytics: {
+              ...state.adminAnalytics,
+              ...(analytics || {}),
+              totalOrganizations: orgsCount,
+              activeOrganizations: activeOrgsCount,
+              totalUsers: usersCount,
+              activeUsers: activeUsersCount,
+            },
+            administratorsList: admins?.length ? admins : state.administratorsList,
+            platformUsersList: users?.length ? users : state.platformUsersList,
+            platformInvitationsList: invitations?.length ? invitations : state.platformInvitationsList,
+            auditLogsList: logs?.length ? logs : state.auditLogsList,
+          };
+        });
+      } catch (err) {
+        console.warn('Live super admin analytics sync:', err);
+      }
+    };
+
+    fetchLiveSuperAdminData();
+    return () => {
+      isMounted = false;
+    };
+  }, [organizations.length]);
 
   const openSetPasswordModal = (org: Organization) => {
     setPasswordModalOrg(org);
@@ -422,7 +476,7 @@ export const SuperAdminView: React.FC = () => {
               </div>
               <div>
                 <div style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a' }}>
-                  {adminAnalytics.totalOrganizations}
+                  {Math.max(adminAnalytics.totalOrganizations || 0, organizations.length)}
                 </div>
                 <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', fontWeight: 600 }}>
                   Client Organizations
@@ -451,7 +505,11 @@ export const SuperAdminView: React.FC = () => {
               </div>
               <div>
                 <div style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a' }}>
-                  {adminAnalytics.totalUsers}
+                  {Math.max(
+                    adminAnalytics.totalUsers || 0,
+                    platformUsersList?.length || 0,
+                    organizations.reduce((acc, o) => acc + (o.memberCount || 1), 0)
+                  )}
                 </div>
                 <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', fontWeight: 600 }}>
                   Active Team Users

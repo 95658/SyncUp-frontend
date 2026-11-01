@@ -421,9 +421,37 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         targetOrgId = allOrgs[0].id;
       }
 
+      // Sync Platform Analytics for Super Admin
+      let analyticsData: any = null;
+      try {
+        analyticsData = await superAdminApi.getAnalytics().catch(() => null);
+      } catch {}
+
+      const totalOrgsCount = Math.max(analyticsData?.totalOrganizations ?? 0, allOrgs.length);
+      const activeOrgsCount = Math.max(
+        analyticsData?.activeOrganizations ?? 0,
+        allOrgs.filter((o) => o.status === 'ACTIVE').length
+      );
+      const totalUsersCount = Math.max(
+        analyticsData?.totalUsers ?? 0,
+        allOrgs.reduce((acc, o) => acc + (o.memberCount || 1), 0)
+      );
+      const activeUsersCount = Math.max(
+        analyticsData?.activeUsers ?? 0,
+        allOrgs.reduce((acc, o) => acc + (o.status === 'ACTIVE' ? (o.memberCount || 1) : 0), 0)
+      );
+
       set({
         organizations: allOrgs,
         activeOrgId: targetOrgId,
+        adminAnalytics: {
+          ...get().adminAnalytics,
+          ...(analyticsData || {}),
+          totalOrganizations: totalOrgsCount,
+          activeOrganizations: activeOrgsCount,
+          totalUsers: totalUsersCount,
+          activeUsers: activeUsersCount,
+        },
       });
 
       if (targetOrgId) {
