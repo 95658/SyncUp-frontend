@@ -61,6 +61,18 @@ export default function LoginPage() {
         router.replace('/workspace');
         return;
       } else {
+        await syncFromBackend();
+        const currentOrgs = useWorkspaceStore.getState().organizations;
+        const allSuspended = currentOrgs.length > 0 && currentOrgs.every((o) => o.status === 'SUSPENDED');
+        if (allSuspended) {
+          setError(
+            'This organization has been suspended by the platform administrator. Access is restricted.'
+          );
+          logoutUser();
+          setLoading(false);
+          return;
+        }
+
         const user = {
           id: res.user.id,
           name: res.user.fullName,
@@ -71,8 +83,6 @@ export default function LoginPage() {
         };
         loginUser(user, 'ORG_ADMIN', res.accessToken);
         setCurrentView('dashboard');
-        await syncFromBackend();
-        const currentOrgs = useWorkspaceStore.getState().organizations;
         if (currentOrgs.length > 0) {
           useWorkspaceStore.getState().setActiveOrgId(currentOrgs[0].id);
         }
@@ -148,6 +158,13 @@ export default function LoginPage() {
         );
 
         if (matchedOrg) {
+          if (matchedOrg.status === 'SUSPENDED') {
+            setError(
+              'This organization has been suspended by the platform administrator. Access is restricted.'
+            );
+            setLoading(false);
+            return;
+          }
           const expectedPass = matchedOrg.adminPassword || `${matchedOrg.name.replace(/\s+/g, '')}#Admin2026!`;
           const altPass1 = `${matchedOrg.name}#Admin2026!`;
           const altPass2 = 'Nasa#Admin2026!';

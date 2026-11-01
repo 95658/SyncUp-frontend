@@ -26,7 +26,7 @@ import { UserProfileModal } from '@/components/ui/UserProfileModal';
 import { NotificationsDrawer } from '@/components/notifications/NotificationsDrawer';
 import { NotificationDetailModal } from '@/components/notifications/NotificationDetailModal';
 import { SprintEstimationModal } from '@/components/projects/SprintEstimationModal';
-import { Building2 } from 'lucide-react';
+import { Building2, ShieldAlert } from 'lucide-react';
 
 export default function WorkspacePage() {
   const router = useRouter();
@@ -146,6 +146,109 @@ export default function WorkspacePage() {
   const renderActiveView = () => {
     if (isPlatformOwner) {
       return <SuperAdminView />;
+    }
+
+    const activeOrg = organizations.find((o) => o.id === useWorkspaceStore.getState().activeOrgId) || organizations[0] || null;
+
+    // Requirement: If non-platform owner's organization is SUSPENDED, block all workspace views
+    if (!isPlatformOwner && activeOrg && activeOrg.status === 'SUSPENDED') {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', padding: '32px', textAlign: 'center' }}>
+          <div
+            style={{
+              width: '84px',
+              height: '84px',
+              borderRadius: '24px',
+              background: 'var(--danger-bg)',
+              color: 'var(--danger)',
+              border: '2px solid var(--danger-border)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '20px',
+              boxShadow: '0 12px 32px rgba(239, 68, 68, 0.22)',
+            }}
+          >
+            <ShieldAlert size={44} />
+          </div>
+
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 14px',
+              borderRadius: '9999px',
+              background: 'var(--danger-bg)',
+              color: 'var(--danger-text)',
+              border: '1px solid var(--danger-border)',
+              fontSize: '12px',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.6px',
+              marginBottom: '16px',
+            }}
+          >
+            <span>{language === 'ar' ? 'مؤسسة معلّقة' : 'Organization Suspended'}</span>
+          </div>
+
+          <h2 style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-main)', marginBottom: '12px' }}>
+            {language === 'ar' ? `تم تعليق مساحة عمل ${activeOrg.name}` : `${activeOrg.name} Workspace is Suspended`}
+          </h2>
+
+          <p style={{ fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '520px', lineHeight: 1.6, marginBottom: '28px' }}>
+            {language === 'ar'
+              ? `تم تعليق هذه المؤسسة من قِبل مالك المنصة (أحمد عبد الفتاح). تم إيقاف الوصول إلى المشاريع، المهام، قنوات المحادثة، والملفات مؤقتاً. يرجى التواصل مع إدارة المنصة لإعادة التفعيل.`
+              : `This organization has been suspended by Platform Owner Ahmed Abdelfatah. Access to projects, tasks, chat, and files is temporarily locked. Please contact platform administration to reactivate.`}
+          </p>
+
+          <div
+            style={{
+              background: 'var(--bg-surface)',
+              padding: '18px 24px',
+              borderRadius: '16px',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              maxWidth: '440px',
+              width: '100%',
+              marginBottom: '28px',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13.5px' }}>
+              <span style={{ color: 'var(--text-muted)' }}>{language === 'ar' ? 'اسم المؤسسة:' : 'Organization:'}</span>
+              <span style={{ fontWeight: 800, color: 'var(--text-main)' }}>{activeOrg.name}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13.5px' }}>
+              <span style={{ color: 'var(--text-muted)' }}>{language === 'ar' ? 'حالة الحساب:' : 'Account Status:'}</span>
+              <span style={{ fontWeight: 800, color: 'var(--danger)' }}>SUSPENDED</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13.5px' }}>
+              <span style={{ color: 'var(--text-muted)' }}>{language === 'ar' ? 'المسؤول:' : 'Admin Lead:'}</span>
+              <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{currentUser?.email || activeOrg.adminEmail}</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={() => useUIStore.getState().setLogoutConfirmOpen(true)}
+              className="btn btn-secondary"
+              style={{ padding: '10px 22px', fontSize: '13.5px', fontWeight: 700 }}
+            >
+              {language === 'ar' ? 'تسجيل الخروج' : 'Log Out'}
+            </button>
+            <a
+              href="mailto:aabdelfatah732@gmail.com?subject=Reactivate%20Organization%20Request"
+              className="btn btn-primary"
+              style={{ padding: '10px 22px', fontSize: '13.5px', fontWeight: 700, textDecoration: 'none' }}
+            >
+              {language === 'ar' ? 'مراسلة إدارة المنصة' : 'Contact Platform Support'}
+            </a>
+          </div>
+        </div>
+      );
     }
 
     // Only Platform Owner can create organizations. If an org admin has no assigned org:

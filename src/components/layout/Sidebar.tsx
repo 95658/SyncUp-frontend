@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
+import { showSnack } from '@/store/snackbarStore';
 import {
   ShieldAlert,
   Building2,
@@ -258,8 +259,17 @@ export const Sidebar: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <span className="badge badge-success" style={{ fontSize: '10px' }}>
-                Active
+              <span
+                className={`badge ${currentOrg.status === 'SUSPENDED' ? 'badge-danger' : 'badge-success'}`}
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  background: currentOrg.status === 'SUSPENDED' ? 'var(--danger-bg)' : 'var(--success-bg)',
+                  color: currentOrg.status === 'SUSPENDED' ? 'var(--danger)' : 'var(--success)',
+                  border: currentOrg.status === 'SUSPENDED' ? '1px solid var(--danger-border)' : '1px solid var(--success-border)',
+                }}
+              >
+                {currentOrg.status === 'SUSPENDED' ? (isAr ? 'معلّق' : 'Suspended') : (isAr ? 'نشط' : 'Active')}
               </span>
             </div>
           ) : (
@@ -359,6 +369,13 @@ export const Sidebar: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
+                        if (currentOrg?.status === 'SUSPENDED' && !isPlatformOwner) {
+                          showSnack(
+                            isAr ? 'تم تعليق هذه المؤسسة من قِبل إدارة المنصة' : 'This organization is suspended by platform administration',
+                            'error'
+                          );
+                          return;
+                        }
                         setCurrentView(item.id as any);
                       }}
                       style={{
