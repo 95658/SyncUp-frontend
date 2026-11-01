@@ -28,7 +28,7 @@ export const landingTranslations = {
         realtime: '< 30ms',
         realtimeLabel: 'Socket.IO Sync Latency',
         accessTier: '3-Tier RBAC',
-        accessTierLabel: 'Platform Owner to Member',
+        accessTierLabel: 'Platform Owner (Ahmed) to Member',
         availability: '99.9%',
         availabilityLabel: 'Enterprise SLA Uptime',
       },
@@ -95,7 +95,7 @@ export const landingTranslations = {
           bullets: [
             'Strict database-level multi-tenant isolation per organization',
             'Invitation-only access with cryptographically secured tokens',
-            'Platform Owner, Org Admin, and Team Member RBAC hierarchy',
+            'Platform Owner: Ahmed Abdelfatah (RBAC & Tenant Controls)',
             'Comprehensive audit trail logging for security compliance',
           ],
         },
@@ -136,7 +136,7 @@ export const landingTranslations = {
         {
           number: '01',
           title: 'Organization Provisioning',
-          desc: 'Platform Owner provisions a dedicated, isolated organization environment and assigns the company executive as Organization Admin.',
+          desc: 'Platform Owner (Ahmed Abdelfatah) provisions a dedicated, isolated organization environment and assigns the company executive as Organization Admin.',
         },
         {
           number: '02',
@@ -164,7 +164,7 @@ export const landingTranslations = {
       items: [
         {
           q: 'Can anyone create a public account on SyncUp?',
-          a: 'No. SyncUp is strictly an invite-only B2B SaaS platform. Public registration endpoints do not exist. All user accounts are created via secure invitation tokens dispatched by Organization Admins or the Platform Owner.',
+          a: 'No. SyncUp is strictly an invite-only B2B SaaS platform. Public registration endpoints do not exist. All user accounts are created via secure invitation tokens dispatched by Organization Admins or Platform Owner Ahmed Abdelfatah.',
         },
         {
           q: 'Does SyncUp support full bilingual English and Arabic interfaces?',
@@ -186,7 +186,7 @@ export const landingTranslations = {
     },
     requestModal: {
       title: 'Request Company Access',
-      subtitle: 'Fill out your organization details and the Platform Owner will provision your dedicated tenant.',
+      subtitle: 'Fill out your organization details and Platform Owner Ahmed Abdelfatah will provision your dedicated tenant.',
       companyName: 'Company or Organization Name',
       companyNamePlaceholder: 'e.g. Acme Technologies',
       adminName: 'Your Full Name',
@@ -242,7 +242,7 @@ export const landingTranslations = {
         realtime: '< 30 ملي ثانية',
         realtimeLabel: 'سرعة المزامنة اللحظية',
         accessTier: '3 مستويات',
-        accessTierLabel: 'صلاحيات من المالك إلى الأعضاء',
+        accessTierLabel: 'صلاحيات من مالك المنصة أحمد للأعضاء',
         availability: '99.9%',
         availabilityLabel: 'جاهزية تشغيل مستمرة',
       },
@@ -309,7 +309,7 @@ export const landingTranslations = {
           bullets: [
             'عزل كامل للبيانات وقواعد البيانات لكل شركة (Tenant Isolation)',
             'الدخول حصري بنظام الدعوات المشفرة بروابط آمنة لمرة واحدة',
-            'تدرج صلاحيات: مالك المنصة، مدير المؤسسة، وأعضاء الفرق',
+            'تدرج صلاحيات: مالك المنصة (أحمد عبد الفتاح)، مدير المؤسسة، وأعضاء الفرق',
             'سجل تدقيق أمني مفصل لمراقبة الأنشطة والعمليات الهامة',
           ],
         },
@@ -350,7 +350,7 @@ export const landingTranslations = {
         {
           number: '٠١',
           title: 'تجهيز المنظمة (Organization Provisioning)',
-          desc: 'يقوم مالك المنصة بتجهيز بيئة عمل سحابية معزولة للشركة وتعيين المدير التنفيذي كمسؤول للمنظمة.',
+          desc: 'يقوم مالك المنصة (أحمد عبد الفتاح) بتجهيز بيئة عمل سحابية معزولة للشركة وتعيين المدير التنفيذي كمسؤول للمنظمة.',
         },
         {
           number: '٠٢',
@@ -378,7 +378,7 @@ export const landingTranslations = {
       items: [
         {
           q: 'هل يمكن لأي شخص إنشاء حساب مفتوح ومباشر في SyncUp؟',
-          a: 'لا. منصة SyncUp هي منصة B2B خاصة ومغلقة، ولا توجد أي روابط تسجيل عامة. جميع الحسابات يتم إنشاؤها عبر دعوات مشفرة ومصادق عليها يرسلها مدير المؤسسة أو مالك المنصة.',
+          a: 'لا. منصة SyncUp هي منصة B2B خاصة ومغلقة، ولا توجد أي روابط تسجيل عامة. جميع الحسابات يتم إنشاؤها عبر دعوات مشفرة ومصادق عليها يرسلها مدير المؤسسة أو مالك المنصة (أحمد عبد الفتاح).',
         },
         {
           q: 'هل تدعم المنصة اللغة العربية بالكامل؟',
@@ -400,7 +400,7 @@ export const landingTranslations = {
     },
     requestModal: {
       title: 'طلب انضمام شركة أو مؤسسة',
-      subtitle: 'أدخل تفاصيل شركتك وسيقوم مالك المنصة بتجهيز بيئة عملك الخاصة وإرسال رابط التفعيل.',
+      subtitle: 'أدخل تفاصيل شركتك وسيقوم مالك المنصة (أحمد عبد الفتاح) بتجهيز بيئة عملك الخاصة وإرسال رابط التفعيل.',
       companyName: 'اسم الشركة أو المؤسسة',
       companyNamePlaceholder: 'مثال: شركة التطوير التقني',
       adminName: 'اسم المسؤول الكامل',

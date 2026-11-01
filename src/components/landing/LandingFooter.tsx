@@ -234,7 +234,9 @@ export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <CheckCircle2 size={15} style={{ color: 'var(--success)' }} />
-                <span>Platform Owner RBAC Controls</span>
+                <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>
+                  {language === 'ar' ? 'مالك المنصة: أحمد عبد الفتاح' : 'Platform Owner: Ahmed Abdelfatah'}
+                </span>
               </div>
             </div>
           </div>
@@ -255,7 +257,7 @@ export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
           }}
         >
           <div>
-            © {new Date().getFullYear()} SyncUp Platform. {t.allRights}
+            © {new Date().getFullYear()} SyncUp Platform • Platform Owner: Ahmed Abdelfatah. {t.allRights}
           </div>
           <div>{t.privacyNote}</div>
         </div>
