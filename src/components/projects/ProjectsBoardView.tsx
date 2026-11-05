@@ -38,6 +38,7 @@ import {
   Tag,
   ArrowRight,
   TrendingUp,
+  Edit2,
 } from 'lucide-react';
 
 interface ProjectFile {
@@ -65,6 +66,7 @@ export const ProjectsBoardView: React.FC = () => {
     addNewTask,
     updateTaskStatus,
     createProject,
+    updateProject,
     isCreateProjectModalOpen,
     setCreateProjectModalOpen,
   } = useWorkspaceStore();
@@ -77,6 +79,13 @@ export const ProjectsBoardView: React.FC = () => {
   const [isAddingTask, setIsAddingTask] = useState<TaskStatus | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+
+  // Edit Project Modal State (Requirement: Easily edit Project name and details)
+  const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
+  const [editProjectName, setEditProjectName] = useState('');
+  const [editProjectType, setEditProjectType] = useState('Software');
+  const [editProjectStatus, setEditProjectStatus] = useState<'ACTIVE' | 'ON_HOLD' | 'COMPLETED' | 'ARCHIVED'>('ACTIVE');
+  const [editProjectDesc, setEditProjectDesc] = useState('');
 
   // Invite Members to Project Modal State (Requirement 21)
   const [isInviteProjectMemberOpen, setIsInviteProjectMemberOpen] = useState(false);
@@ -125,6 +134,28 @@ export const ProjectsBoardView: React.FC = () => {
   };
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId) || projects[0];
+
+  const handleOpenEditProject = () => {
+    if (!selectedProject) return;
+    setEditProjectName(selectedProject.name);
+    setEditProjectType((selectedProject as any).projectType || 'Software');
+    setEditProjectStatus((selectedProject.status as any) || 'ACTIVE');
+    setEditProjectDesc(selectedProject.description || '');
+    setIsEditProjectModalOpen(true);
+  };
+
+  const handleSaveProject = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!selectedProject || !editProjectName.trim()) return;
+    await updateProject(selectedProject.id, {
+      name: editProjectName.trim(),
+      projectType: editProjectType,
+      status: editProjectStatus,
+      description: editProjectDesc.trim(),
+    });
+    setIsEditProjectModalOpen(false);
+    showSnack(isAr ? 'تم تعديل بيانات المشروع بنجاح' : 'Project updated successfully!', 'success');
+  };
 
   const columns: { id: TaskStatus; title: string; color: string; badgeBg: string }[] = [
     { id: 'TODO', title: isAr ? 'قيد الانتظار' : 'To Do', color: '#64748B', badgeBg: '#f1f5f9' },
@@ -421,6 +452,28 @@ export const ProjectsBoardView: React.FC = () => {
               <h1 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.4px' }}>
                 {selectedProject?.name || 'Main Project'}
               </h1>
+              <button
+                type="button"
+                onClick={handleOpenEditProject}
+                className="btn-ghost"
+                title={isAr ? 'تعديل اسم المشروع' : 'Edit project name and details'}
+                style={{
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  background: 'var(--bg-app)',
+                  border: '1px solid var(--border-light)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                }}
+              >
+                <Edit2 size={12} color="var(--primary)" />
+                <span>{isAr ? 'تعديل المشروع' : 'Edit Project'}</span>
+              </button>
               <span className="badge badge-primary" style={{ padding: '3px 8px' }}>
                 {selectedProject?.status || 'ACTIVE'}
               </span>
@@ -1060,14 +1113,22 @@ export const ProjectsBoardView: React.FC = () => {
               {isAr ? 'إعدادات المشروع وحالته' : 'Project Settings & Status'}
             </h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveProject();
+              }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}
+            >
               <div>
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                   {isAr ? 'اسم المشروع' : 'Project Name'}
                 </label>
                 <input
                   type="text"
-                  defaultValue={selectedProject?.name}
+                  required
+                  value={editProjectName || selectedProject?.name || ''}
+                  onChange={(e) => setEditProjectName(e.target.value)}
                   style={{
                     width: '100%',
                     padding: '9px 12px',
@@ -1087,11 +1148,8 @@ export const ProjectsBoardView: React.FC = () => {
                   {isAr ? 'حالة المشروع' : 'Project Status'}
                 </label>
                 <select
-                  defaultValue={selectedProject?.status}
-                  onChange={(e) => {
-                    if (selectedProject) selectedProject.status = e.target.value as any;
-                    showSnack(isAr ? 'تم تعديل حالة المشروع' : `Project status updated to ${e.target.value}`, 'success');
-                  }}
+                  value={editProjectStatus}
+                  onChange={(e) => setEditProjectStatus(e.target.value as any)}
                   style={{
                     width: '100%',
                     padding: '9px 12px',
@@ -1109,6 +1167,42 @@ export const ProjectsBoardView: React.FC = () => {
                   <option value="ARCHIVED">ARCHIVED</option>
                 </select>
               </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
+                  {isAr ? 'وصف المشروع' : 'Project Description'}
+                </label>
+                <textarea
+                  rows={2}
+                  value={editProjectDesc}
+                  onChange={(e) => setEditProjectDesc(e.target.value)}
+                  placeholder={isAr ? 'أضف وصفاً مختصراً للمشروع...' : 'Short description of project goals...'}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--bg-app)',
+                    color: 'var(--text-main)',
+                    fontSize: '13px',
+                    outline: 'none',
+                    resize: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ padding: '8px 20px', fontSize: '13px', fontWeight: 700 }}
+                >
+                  {isAr ? 'حفظ إعدادات المشروع' : 'Save Project Details'}
+                </button>
+              </div>
+            </form>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
               {/* Requirement 27: Add Custom Task Status */}
               <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
@@ -1578,6 +1672,165 @@ export const ProjectsBoardView: React.FC = () => {
                   </div>
                 </div>
               )}
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Modal: Edit Project (Quick modal accessible from header anywhere) */}
+      {isEditProjectModalOpen && selectedProject && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(5px)',
+            zIndex: 9998,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+          onClick={() => setIsEditProjectModalOpen(false)}
+        >
+          <div
+            className="card"
+            style={{
+              width: '100%',
+              maxWidth: '520px',
+              padding: '24px',
+              background: 'var(--bg-surface)',
+              borderRadius: '16px',
+              boxShadow: 'var(--shadow-modal)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main)' }}>
+                {isAr ? 'تعديل بيانات المشروع' : 'Edit Project Details'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsEditProjectModalOpen(false)}
+                className="btn-ghost"
+                style={{ padding: '6px', borderRadius: '6px', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProject} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-main)' }}>
+                  {isAr ? 'اسم المشروع' : 'Project Name'} <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editProjectName}
+                  onChange={(e) => setEditProjectName(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--bg-app)',
+                    color: 'var(--text-main)',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-main)' }}>
+                  {isAr ? 'نوع المشروع' : 'Project Type'}
+                </label>
+                <select
+                  value={editProjectType}
+                  onChange={(e) => setEditProjectType(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--bg-app)',
+                    color: 'var(--text-main)',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                >
+                  <option value="Software">Software Engineering</option>
+                  <option value="Marketing">Marketing & Growth</option>
+                  <option value="Design">UI/UX Design</option>
+                  <option value="Operations">Operations & Business</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-main)' }}>
+                  {isAr ? 'حالة المشروع' : 'Project Status'}
+                </label>
+                <select
+                  value={editProjectStatus}
+                  onChange={(e) => setEditProjectStatus(e.target.value as any)}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--bg-app)',
+                    color: 'var(--text-main)',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                >
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="ON_HOLD">ON_HOLD</option>
+                  <option value="COMPLETED">COMPLETED</option>
+                  <option value="ARCHIVED">ARCHIVED</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-main)' }}>
+                  {isAr ? 'الوصف' : 'Description'}
+                </label>
+                <textarea
+                  rows={2}
+                  value={editProjectDesc}
+                  onChange={(e) => setEditProjectDesc(e.target.value)}
+                  placeholder="Project scope and details..."
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--bg-app)',
+                    color: 'var(--text-main)',
+                    fontSize: '13px',
+                    outline: 'none',
+                    resize: 'none',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsEditProjectModalOpen(false)}
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 16px', fontSize: '13px' }}
+                >
+                  {isAr ? 'إلغاء' : 'Cancel'}
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ padding: '8px 20px', fontSize: '13px', fontWeight: 700 }}
+                >
+                  {isAr ? 'حفظ التعديلات' : 'Save Changes'}
+                </button>
+              </div>
             </form>
           </div>
         </div>

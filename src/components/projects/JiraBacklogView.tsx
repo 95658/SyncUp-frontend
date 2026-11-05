@@ -26,6 +26,8 @@ import {
   Clock,
   Sparkles,
   Ticket,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 
 interface JiraBacklogViewProps {
@@ -41,10 +43,13 @@ export const JiraBacklogView: React.FC<JiraBacklogViewProps> = ({ projectId }) =
     createSprint,
     startSprint,
     completeSprint,
+    updateSprint,
+    deleteSprint,
     moveTaskToSprint,
     addNewTask,
     selectTask,
     updateTaskStatus,
+    updateTask,
   } = useWorkspaceStore();
   const { currentUser, activeRole } = useAuthStore();
   const { language } = useUIStore();
@@ -69,6 +74,48 @@ export const JiraBacklogView: React.FC<JiraBacklogViewProps> = ({ projectId }) =
   const [startingSprint, setStartingSprint] = useState<Sprint | null>(null);
   const [startDurationWeeks, setStartDurationWeeks] = useState(2);
   const [startGoal, setStartGoal] = useState('');
+
+  // Edit Sprint Modal
+  const [editingSprint, setEditingSprint] = useState<Sprint | null>(null);
+  const [editSprintName, setEditSprintName] = useState('');
+  const [editSprintGoal, setEditSprintGoal] = useState('');
+  const [editSprintStartDate, setEditSprintStartDate] = useState('');
+  const [editSprintEndDate, setEditSprintEndDate] = useState('');
+
+  const handleOpenEditSprint = (sprint: Sprint) => {
+    setEditingSprint(sprint);
+    setEditSprintName(sprint.name);
+    setEditSprintGoal(sprint.goal || '');
+    setEditSprintStartDate(sprint.startDate || '');
+    setEditSprintEndDate(sprint.endDate || '');
+  };
+
+  const handleConfirmEditSprint = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSprint || !editSprintName.trim()) return;
+    await updateSprint(editingSprint.id, {
+      name: editSprintName.trim(),
+      goal: editSprintGoal.trim(),
+      startDate: editSprintStartDate.trim() || undefined,
+      endDate: editSprintEndDate.trim() || undefined,
+    });
+    setEditingSprint(null);
+    showSnack(isAr ? 'تم تعديل بيانات السبرنت' : 'Sprint updated successfully', 'success');
+  };
+
+  const handleDeleteSprint = async (sprintId: string) => {
+    if (
+      confirm(
+        isAr
+          ? 'هل أنت متأكد من حذف هذا السبرنت؟ ستعود المهام إلى الـ Backlog.'
+          : 'Are you sure you want to delete this sprint? Unfinished tasks will be moved to Backlog.'
+      )
+    ) {
+      await deleteSprint(sprintId);
+      setEditingSprint(null);
+      showSnack(isAr ? 'تم حذف السبرنت' : 'Sprint deleted', 'info');
+    }
+  };
 
   // Project data
   const currentProject = projects.find((p) => p.id === projectId) || projects[0];
@@ -360,35 +407,57 @@ export const JiraBacklogView: React.FC<JiraBacklogViewProps> = ({ projectId }) =
                       </span>
                     </div>
 
-                    {/* Start / Complete Actions */}
-                    {!isCompleted && (
-                      <>
-                        {isActive ? (
-                          <button
-                            type="button"
-                            onClick={() => handleConfirmCompleteSprint(sprint)}
-                            className="btn btn-secondary"
-                            style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 700, borderRadius: '6px', border: '1px solid var(--border-light)' }}
-                          >
-                            <CheckCircle2 size={13} color="var(--success)" />
-                            <span>{isAr ? 'إتمام السبرنت' : 'Complete Sprint'}</span>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setStartingSprint(sprint);
-                              setStartGoal(sprint.goal || '');
-                            }}
-                            className="btn btn-primary"
-                            style={{ padding: '6px 14px', fontSize: '12px', fontWeight: 700, borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}
-                          >
-                            <Play size={12} fill="currentColor" />
-                            <span>{isAr ? 'بدء السبرنت' : 'Start Sprint'}</span>
-                          </button>
-                        )}
-                      </>
-                    )}
+                    {/* Sprint Actions */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditSprint(sprint)}
+                        className="btn btn-secondary"
+                        title={isAr ? 'تعديل السبرنت' : 'Edit Sprint'}
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          borderRadius: '6px',
+                          border: '1px solid var(--border-light)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                        }}
+                      >
+                        <Edit2 size={13} />
+                        <span>{isAr ? 'تعديل' : 'Edit'}</span>
+                      </button>
+
+                      {!isCompleted && (
+                        <>
+                          {isActive ? (
+                            <button
+                              type="button"
+                              onClick={() => handleConfirmCompleteSprint(sprint)}
+                              className="btn btn-secondary"
+                              style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 700, borderRadius: '6px', border: '1px solid var(--border-light)' }}
+                            >
+                              <CheckCircle2 size={13} color="var(--success)" />
+                              <span>{isAr ? 'إتمام السبرنت' : 'Complete Sprint'}</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setStartingSprint(sprint);
+                                setStartGoal(sprint.goal || '');
+                              }}
+                              className="btn btn-primary"
+                              style={{ padding: '6px 14px', fontSize: '12px', fontWeight: 700, borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                            >
+                              <Play size={12} fill="currentColor" />
+                              <span>{isAr ? 'بدء السبرنت' : 'Start Sprint'}</span>
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -438,6 +507,45 @@ export const JiraBacklogView: React.FC<JiraBacklogViewProps> = ({ projectId }) =
                               >
                                 {isAr ? 'إلى Backlog' : 'To Backlog'}
                               </button>
+
+                              {/* Priority Selector (Requirement: Easily edit priority) */}
+                              <select
+                                value={task.priority}
+                                onChange={(e) => {
+                                  updateTask(task.id, { priority: e.target.value as TaskPriority });
+                                  showSnack(
+                                    isAr ? `تم تعديل الأولوية إلى ${e.target.value}` : `Priority: ${e.target.value}`,
+                                    'success'
+                                  );
+                                }}
+                                title={isAr ? 'تعديل الأولوية' : 'Change priority'}
+                                style={{
+                                  padding: '3px 6px',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  borderRadius: '6px',
+                                  border: '1px solid var(--border-light)',
+                                  background:
+                                    task.priority === 'HIGH' || task.priority === 'URGENT'
+                                      ? 'rgba(239, 68, 68, 0.12)'
+                                      : task.priority === 'MEDIUM'
+                                      ? 'rgba(245, 158, 11, 0.12)'
+                                      : 'rgba(16, 185, 129, 0.12)',
+                                  color:
+                                    task.priority === 'HIGH' || task.priority === 'URGENT'
+                                      ? '#dc2626'
+                                      : task.priority === 'MEDIUM'
+                                      ? '#d97706'
+                                      : '#059669',
+                                  cursor: 'pointer',
+                                  outline: 'none',
+                                }}
+                              >
+                                <option value="LOW">LOW</option>
+                                <option value="MEDIUM">MED</option>
+                                <option value="HIGH">HIGH</option>
+                                <option value="URGENT">URG</option>
+                              </select>
 
                               {/* Story Points */}
                               <span
@@ -672,6 +780,45 @@ export const JiraBacklogView: React.FC<JiraBacklogViewProps> = ({ projectId }) =
                         </select>
                       )}
 
+                      {/* Priority Selector */}
+                      <select
+                        value={task.priority}
+                        onChange={(e) => {
+                          updateTask(task.id, { priority: e.target.value as TaskPriority });
+                          showSnack(
+                            isAr ? `تم تعديل الأولوية إلى ${e.target.value}` : `Priority: ${e.target.value}`,
+                            'success'
+                          );
+                        }}
+                        title={isAr ? 'تعديل الأولوية' : 'Change priority'}
+                        style={{
+                          padding: '3px 6px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          borderRadius: '6px',
+                          border: '1px solid var(--border-light)',
+                          background:
+                            task.priority === 'HIGH' || task.priority === 'URGENT'
+                              ? 'rgba(239, 68, 68, 0.12)'
+                              : task.priority === 'MEDIUM'
+                              ? 'rgba(245, 158, 11, 0.12)'
+                              : 'rgba(16, 185, 129, 0.12)',
+                          color:
+                            task.priority === 'HIGH' || task.priority === 'URGENT'
+                              ? '#dc2626'
+                              : task.priority === 'MEDIUM'
+                              ? '#d97706'
+                              : '#059669',
+                          cursor: 'pointer',
+                          outline: 'none',
+                        }}
+                      >
+                        <option value="LOW">LOW</option>
+                        <option value="MEDIUM">MED</option>
+                        <option value="HIGH">HIGH</option>
+                        <option value="URGENT">URG</option>
+                      </select>
+
                       {/* Points */}
                       <span
                         style={{
@@ -864,6 +1011,181 @@ export const JiraBacklogView: React.FC<JiraBacklogViewProps> = ({ projectId }) =
                 <button type="submit" className="btn btn-primary" style={{ padding: '8px 18px', fontSize: '13px', fontWeight: 700 }}>
                   {isAr ? 'تأكيد الإنشاء' : 'Create Sprint'}
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Sprint */}
+      {editingSprint && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(5px)',
+            zIndex: 9998,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+          onClick={() => setEditingSprint(null)}
+        >
+          <div
+            className="card"
+            style={{
+              width: '100%',
+              maxWidth: '520px',
+              padding: '24px',
+              background: 'var(--bg-surface)',
+              borderRadius: '16px',
+              boxShadow: 'var(--shadow-modal)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main)' }}>
+                {isAr ? `تعديل ${editingSprint.name}` : `Edit ${editingSprint.name}`}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingSprint(null)}
+                className="btn-ghost"
+                style={{ padding: '6px', cursor: 'pointer', borderRadius: '6px' }}
+              >
+                <ChevronDown size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmEditSprint} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-main)' }}>
+                  {isAr ? 'اسم السبرنت' : 'Sprint Name'} <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editSprintName}
+                  onChange={(e) => setEditSprintName(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--bg-app)',
+                    color: 'var(--text-main)',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-main)' }}>
+                  {isAr ? 'هدف السبرنت (Sprint Goal)' : 'Sprint Goal'}
+                </label>
+                <textarea
+                  rows={2}
+                  value={editSprintGoal}
+                  onChange={(e) => setEditSprintGoal(e.target.value)}
+                  placeholder="e.g. Deliver core auth, notifications, and navigation"
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--bg-app)',
+                    color: 'var(--text-main)',
+                    fontSize: '13px',
+                    outline: 'none',
+                    resize: 'none',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px', color: 'var(--text-muted)' }}>
+                    {isAr ? 'تاريخ البدء' : 'Start Date'}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Nov 4"
+                    value={editSprintStartDate}
+                    onChange={(e) => setEditSprintStartDate(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border-light)',
+                      background: 'var(--bg-app)',
+                      color: 'var(--text-main)',
+                      fontSize: '12.5px',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px', color: 'var(--text-muted)' }}>
+                    {isAr ? 'تاريخ الانتهاء' : 'End Date'}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Nov 18"
+                    value={editSprintEndDate}
+                    onChange={(e) => setEditSprintEndDate(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border-light)',
+                      background: 'var(--bg-app)',
+                      color: 'var(--text-main)',
+                      fontSize: '12.5px',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px', paddingTop: '12px', borderTop: '1px solid var(--border-light)' }}>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteSprint(editingSprint.id)}
+                  className="btn-ghost"
+                  style={{
+                    padding: '8px 12px',
+                    fontSize: '12.5px',
+                    color: '#ef4444',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    borderRadius: '8px',
+                  }}
+                >
+                  <Trash2 size={14} />
+                  <span>{isAr ? 'حذف السبرنت' : 'Delete Sprint'}</span>
+                </button>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setEditingSprint(null)}
+                    className="btn btn-secondary"
+                    style={{ padding: '8px 16px', fontSize: '13px' }}
+                  >
+                    {isAr ? 'إلغاء' : 'Cancel'}
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{ padding: '8px 18px', fontSize: '13px', fontWeight: 700 }}
+                  >
+                    {isAr ? 'حفظ التعديلات' : 'Save Changes'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

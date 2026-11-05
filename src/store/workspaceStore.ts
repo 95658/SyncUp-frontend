@@ -61,13 +61,18 @@ interface WorkspaceState {
   startSprint: (sprintId: string, durationWeeks?: number, goal?: string) => Promise<void>;
   completeSprint: (sprintId: string) => Promise<void>;
   moveTaskToSprint: (taskId: string, sprintId: string | null) => Promise<void>;
+  updateSprint: (sprintId: string, updates: Partial<Sprint>) => Promise<void>;
+  deleteSprint: (sprintId: string) => Promise<void>;
 
   // Tasks & Projects
   updateTaskStatus: (taskId: string, status: TaskStatus) => Promise<void>;
+  updateTask: (taskId: string, updates: Partial<Task>) => Promise<void>;
+  deleteTask: (taskId: string) => Promise<void>;
   toggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
   addComment: (taskId: string, text: string) => Promise<void>;
   addNewTask: (newTask: Omit<Task, 'id' | 'comments' | 'attachments'>) => Promise<Task>;
   createProject: (data: { name: string; description?: string; projectType?: string; dueDate?: string }) => Promise<any>;
+  updateProject: (projectId: string, updates: Partial<Project>) => Promise<void>;
 
   setCreateOrgModalOpen: (open: boolean) => void;
   setInviteMemberModalOpen: (open: boolean) => void;
@@ -369,6 +374,27 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     set({ tasks: updated });
   },
 
+  updateSprint: async (sprintId, updates) => {
+    const { activeOrgId, sprints } = get();
+    const updatedSprints = sprints.map((s) => (s.id === sprintId ? { ...s, ...updates } : s));
+    if (activeOrgId) {
+      saveToStorage(`syncup_sprints_${activeOrgId}`, updatedSprints);
+    }
+    set({ sprints: updatedSprints });
+  },
+
+  deleteSprint: async (sprintId) => {
+    const { activeOrgId, sprints, tasks } = get();
+    const updatedSprints = sprints.filter((s) => s.id !== sprintId);
+    // Tasks in this sprint are moved to backlog
+    const updatedTasks = tasks.map((t) => (t.sprintId === sprintId ? { ...t, sprintId: null } : t));
+    if (activeOrgId) {
+      saveToStorage(`syncup_sprints_${activeOrgId}`, updatedSprints);
+      saveToStorage(`syncup_tasks_${activeOrgId}`, updatedTasks);
+    }
+    set({ sprints: updatedSprints, tasks: updatedTasks });
+  },
+
   // ─── Backend Synchronization ───────────────────────────────────────────────
   syncFromBackend: async (preferredOrgId) => {
     set({ isLoading: true });
@@ -602,6 +628,15 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     return newProject;
   },
 
+  updateProject: async (projectId, updates) => {
+    const { activeOrgId, projects } = get();
+    const updatedProjects = projects.map((p) => (p.id === projectId ? { ...p, ...updates } : p));
+    if (activeOrgId) {
+      saveToStorage(`syncup_projects_${activeOrgId}`, updatedProjects);
+    }
+    set({ projects: updatedProjects });
+  },
+
   addNewTask: async (newTaskData) => {
     const { activeOrgId, tasks } = get();
     const newTask: Task = {
@@ -635,6 +670,27 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     if (activeOrgId) {
       tasksApi.updateStatus(activeOrgId, taskId, status).catch(() => null);
     }
+  },
+
+  updateTask: async (taskId, updates) => {
+    const { activeOrgId, tasks } = get();
+    const updated = tasks.map((task) => (task.id === taskId ? { ...task, ...updates } : task));
+    if (activeOrgId) {
+      saveToStorage(`syncup_tasks_${activeOrgId}`, updated);
+    }
+    set({ tasks: updated });
+  },
+
+  deleteTask: async (taskId) => {
+    const { activeOrgId, tasks, selectedTaskId } = get();
+    const updated = tasks.filter((task) => task.id !== taskId);
+    if (activeOrgId) {
+      saveToStorage(`syncup_tasks_${activeOrgId}`, updated);
+    }
+    set({
+      tasks: updated,
+      selectedTaskId: selectedTaskId === taskId ? null : selectedTaskId,
+    });
   },
 
   toggleSubtask: async (taskId, subtaskId) => {

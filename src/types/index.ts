@@ -110,7 +110,8 @@ export interface Project {
   id: string;
   name: string;
   description: string;
-  status: 'ACTIVE' | 'ON_HOLD' | 'COMPLETED';
+  status: 'ACTIVE' | 'ON_HOLD' | 'COMPLETED' | 'ARCHIVED';
+  projectType?: string;
   progress: number;
   openTasksCount: number;
   dueDate: string;
