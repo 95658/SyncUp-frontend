@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Task, Project, OrganizationMember, Meeting, ActivityItem, Organization, TaskStatus, Sprint } from '@/types';
+import { Task, Project, OrganizationMember, Meeting, ActivityItem, Organization, TaskStatus, Sprint, Team } from '@/types';
 import { superAdminApi, tasksApi, organizationsApi, projectsApi } from '@/lib/api';
 
 export type SuperAdminTab = 'overview' | 'organizations' | 'administrators' | 'users' | 'invitations' | 'audit-logs' | 'settings';
@@ -16,6 +16,7 @@ interface WorkspaceState {
   tasks: Task[];
   sprints: Sprint[];
   members: OrganizationMember[];
+  teams: Team[];
   meetings: Meeting[];
   activities: ActivityItem[];
   isCreateOrgModalOpen: boolean;
@@ -55,6 +56,14 @@ interface WorkspaceState {
   addNewMember: (memberData: any) => Promise<void>;
   removeMember: (memberId: string) => Promise<void>;
   toggleMemberStatus: (memberId: string) => Promise<void>;
+  updateMemberDetails: (memberId: string, updates: Partial<OrganizationMember> & { name?: string; jobTitle?: string }) => Promise<void>;
+  assignMemberToTeam: (memberId: string, teamName: string) => Promise<void>;
+  assignMemberToProjects: (memberId: string, projectIds: string[]) => Promise<void>;
+
+  // Team Management
+  createTeam: (teamData: { name: string; description?: string; color?: string; leadId?: string; projectIds?: string[] }) => Promise<Team>;
+  updateTeam: (teamId: string, updates: Partial<Team>) => Promise<void>;
+  deleteTeam: (teamId: string) => Promise<void>;
 
   // Jira Sprints & Backlog Management
   createSprint: (projectId: string, name: string, goal?: string) => Promise<Sprint>;
@@ -128,6 +137,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   tasks: [],
   sprints: [],
   members: [],
+  teams: [],
   meetings: [],
   activities: [],
 
@@ -235,10 +245,16 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     saveToStorage(`syncup_projects_${newOrg.id}`, []);
     saveToStorage(`syncup_tasks_${newOrg.id}`, []);
     saveToStorage(`syncup_sprints_${newOrg.id}`, []);
+    const initialOrgTeams: Team[] = [
+      { id: `team-core-${newOrg.id}`, organizationId: newOrg.id, name: 'Core Engineering', description: 'Primary software engineering and architecture team.', color: '#2563eb', createdAt: 'Today' },
+      { id: `team-qa-${newOrg.id}`, organizationId: newOrg.id, name: 'Quality Assurance & Testing', description: 'QA team responsible for sprint verification and staging sign-off.', color: '#10b981', createdAt: 'Today' },
+    ];
+    saveToStorage(`syncup_teams_${newOrg.id}`, initialOrgTeams);
 
     set({
       organizations: updatedOrgs,
       activeOrgId: newOrg.id,
+      teams: initialOrgTeams,
       adminAnalytics: {
         ...get().adminAnalytics,
         totalOrganizations: updatedOrgs.length,
@@ -261,8 +277,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
   // ─── Member Actions ────────────────────────────────────────────────────────
   addNewMember: async (memberData) => {
-    const { activeOrgId, members } = get();
+    const { activeOrgId, members, projects } = get();
     if (!activeOrgId) return;
+
+    const assignedProjectIds = memberData.assignedProjectIds || (memberData.projectId ? [memberData.projectId] : []);
 
     const newMem: OrganizationMember = {
       id: `mem-${Date.now()}`,
@@ -278,6 +296,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       organizationId: activeOrgId,
       role: memberData.role || 'MEMBER',
       team: memberData.team || 'Core Engineering',
+      assignedProjectIds,
       status: 'ACTIVE',
       isOnline: true,
       joinedAt: 'Today',
@@ -285,7 +304,26 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
     const updated = [newMem, ...members];
     saveToStorage(`syncup_members_${activeOrgId}`, updated);
-    set({ members: updated });
+
+    // If projects were assigned, update their teamMembers lists
+    let updatedProjects = projects;
+    if (assignedProjectIds.length > 0) {
+      updatedProjects = updatedProjects.map((p) => {
+        if (assignedProjectIds.includes(p.id)) {
+          const alreadyIn = (p.teamMembers || []).some((tm) => tm.id === newMem.userId || tm.id === newMem.id);
+          if (!alreadyIn) {
+            return {
+              ...p,
+              teamMembers: [...(p.teamMembers || []), { id: newMem.userId, name: newMem.user.name }],
+            };
+          }
+        }
+        return p;
+      });
+      saveToStorage(`syncup_projects_${activeOrgId}`, updatedProjects);
+    }
+
+    set({ members: updated, projects: updatedProjects });
 
     // Try backend sync
     organizationsApi.inviteMember(activeOrgId, { email: memberData.email, role: memberData.role || 'MEMBER' }).catch(() => null);
@@ -307,6 +345,111 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     );
     saveToStorage(`syncup_members_${activeOrgId}`, updated);
     set({ members: updated });
+  },
+
+  updateMemberDetails: async (memberId, updates) => {
+    const { activeOrgId, members, projects } = get();
+    const updated = members.map((m) => {
+      if (m.id !== memberId) return m;
+      return {
+        ...m,
+        role: updates.role || m.role,
+        team: updates.team !== undefined ? updates.team : m.team,
+        assignedProjectIds: updates.assignedProjectIds !== undefined ? updates.assignedProjectIds : m.assignedProjectIds,
+        user: {
+          ...m.user,
+          name: updates.name || m.user.name,
+          jobTitle: updates.jobTitle || m.user.jobTitle,
+        },
+      };
+    });
+    if (activeOrgId) saveToStorage(`syncup_members_${activeOrgId}`, updated);
+
+    // Also update project teamMembers if assignedProjectIds was updated
+    let updatedProjects = projects;
+    if (updates.assignedProjectIds !== undefined) {
+      const memberObj = updated.find((m) => m.id === memberId);
+      if (memberObj) {
+        updatedProjects = projects.map((p) => {
+          const isAssigned = updates.assignedProjectIds!.includes(p.id);
+          const hasMember = (p.teamMembers || []).some((tm) => tm.id === memberObj.userId || tm.id === memberObj.id);
+          if (isAssigned && !hasMember) {
+            return {
+              ...p,
+              teamMembers: [...(p.teamMembers || []), { id: memberObj.userId, name: memberObj.user.name }],
+            };
+          }
+          if (!isAssigned && hasMember) {
+            return {
+              ...p,
+              teamMembers: (p.teamMembers || []).filter((tm) => tm.id !== memberObj.userId && tm.id !== memberObj.id),
+            };
+          }
+          return p;
+        });
+        if (activeOrgId) saveToStorage(`syncup_projects_${activeOrgId}`, updatedProjects);
+      }
+    }
+
+    set({ members: updated, projects: updatedProjects });
+  },
+
+  assignMemberToTeam: async (memberId, teamName) => {
+    const { activeOrgId, members } = get();
+    const updated = members.map((m) => (m.id === memberId ? { ...m, team: teamName } : m));
+    if (activeOrgId) saveToStorage(`syncup_members_${activeOrgId}`, updated);
+    set({ members: updated });
+  },
+
+  assignMemberToProjects: async (memberId, projectIds) => {
+    await get().updateMemberDetails(memberId, { assignedProjectIds: projectIds });
+  },
+
+  // ─── Team Management ───────────────────────────────────────────────────────
+  createTeam: async (teamData) => {
+    const { activeOrgId, teams, members } = get();
+    const newTeam: Team = {
+      id: `team-${Date.now()}`,
+      organizationId: activeOrgId,
+      name: teamData.name.trim(),
+      description: teamData.description?.trim() || '',
+      color: teamData.color || '#2563eb',
+      leadId: teamData.leadId,
+      leadName: teamData.leadId ? members.find((m) => m.id === teamData.leadId || m.userId === teamData.leadId)?.user?.name : undefined,
+      projectIds: teamData.projectIds || [],
+      createdAt: 'Today',
+    };
+    const updated = [...teams, newTeam];
+    if (activeOrgId) saveToStorage(`syncup_teams_${activeOrgId}`, updated);
+    set({ teams: updated });
+    return newTeam;
+  },
+
+  updateTeam: async (teamId, updates) => {
+    const { activeOrgId, teams, members } = get();
+    const updated = teams.map((t) => {
+      if (t.id !== teamId) return t;
+      const leadName = updates.leadId
+        ? members.find((m) => m.id === updates.leadId || m.userId === updates.leadId)?.user?.name
+        : t.leadName;
+      return { ...t, ...updates, leadName: leadName || t.leadName };
+    });
+    if (activeOrgId) saveToStorage(`syncup_teams_${activeOrgId}`, updated);
+    set({ teams: updated });
+  },
+
+  deleteTeam: async (teamId) => {
+    const { activeOrgId, teams, members } = get();
+    const targetTeam = teams.find((t) => t.id === teamId);
+    const updatedTeams = teams.filter((t) => t.id !== teamId);
+    const updatedMembers = members.map((m) =>
+      m.team === targetTeam?.name ? { ...m, team: undefined } : m
+    );
+    if (activeOrgId) {
+      saveToStorage(`syncup_teams_${activeOrgId}`, updatedTeams);
+      saveToStorage(`syncup_members_${activeOrgId}`, updatedMembers);
+    }
+    set({ teams: updatedTeams, members: updatedMembers });
   },
 
   // ─── Jira Sprints Management ───────────────────────────────────────────────
@@ -558,6 +701,26 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       const localMembers = loadFromStorage<OrganizationMember[]>(`syncup_members_${orgId}`, []);
       const localSprints = loadFromStorage<Sprint[]>(`syncup_sprints_${orgId}`, []);
 
+      const defaultOrgTeams: Team[] = [
+        {
+          id: `team-core-${orgId}`,
+          organizationId: orgId,
+          name: 'Core Engineering',
+          description: 'Primary software engineering and architecture team.',
+          color: '#2563eb',
+          createdAt: 'Today',
+        },
+        {
+          id: `team-qa-${orgId}`,
+          organizationId: orgId,
+          name: 'Quality Assurance & Testing',
+          description: 'QA team responsible for sprint verification and staging sign-off.',
+          color: '#10b981',
+          createdAt: 'Today',
+        },
+      ];
+      const localTeams = loadFromStorage<Team[]>(`syncup_teams_${orgId}`, defaultOrgTeams);
+
       const mergedProjects = [...formattedProjects, ...localProjects.filter((lp) => !formattedProjects.some((fp) => fp.id === lp.id))];
       const mergedTasks = [...formattedTasks, ...localTasks.filter((lt) => !formattedTasks.some((ft) => ft.id === lt.id))];
       const mergedMembers = [...formattedMembers, ...localMembers.filter((lm) => !formattedMembers.some((fm) => fm.id === lm.id))];
@@ -570,6 +733,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         tasks: mergedTasks,
         members: mergedMembers,
         sprints: localSprints,
+        teams: localTeams,
       });
     } catch (err) {
       console.warn('Failed to load organization data:', err);

@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 
 export const AllTasksView: React.FC = () => {
-  const { tasks, projects, members, selectTask, updateTaskStatus, addNewTask } = useWorkspaceStore();
+  const { tasks, projects, sprints, members, selectTask, updateTaskStatus, addNewTask } = useWorkspaceStore();
   const { currentUser, activeRole } = useAuthStore();
   const { language } = useUIStore();
   const isAr = language === 'ar';
@@ -131,6 +131,9 @@ export const AllTasksView: React.FC = () => {
 
     const projObj = projects.find((p) => p.id === newProject) || projects[0];
     const taskSprintTag = newSprint.toLowerCase().replace(/\s+/g, '-');
+    const targetSprint = sprints.find(
+      (s) => s.projectId === projObj?.id && (s.name.toLowerCase() === newSprint.toLowerCase() || s.status === 'ACTIVE')
+    );
 
     const created = await addNewTask({
       title: newTitle.trim(),
@@ -139,6 +142,7 @@ export const AllTasksView: React.FC = () => {
       priority: newPriority,
       projectId: projObj?.id || 'main',
       projectName: projObj?.name || 'Main Project',
+      sprintId: targetSprint?.id || null,
       tags: [newType, taskSprintTag],
       assignees: [{ id: currentUser?.id || 'u-1', name: currentUser?.name || 'Assignee' }],
       dueDate: 'Upcoming',

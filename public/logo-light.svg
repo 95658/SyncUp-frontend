@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="syncLightGrad1" x1="15%" y1="15%" x2="85%" y2="85%">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="50%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#4338CA" />
+    </linearGradient>
+    <linearGradient id="syncLightGrad2" x1="85%" y1="85%" x2="15%" y2="15%">
+      <stop offset="0%" stop-color="#0891B2" />
+      <stop offset="60%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+    <filter id="lightShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0F172A" flood-opacity="0.12" />
+    </filter>
+  </defs>
+
+  <!-- Light Mode - Crisp High-Contrast S -->
+  <g filter="url(#lightShadow)">
+    <path
+      d="M48 50 C40 45 32 40 32 30 C32 20 40 14 52 14 C64 14 72 21 72 32 L72 34"
+      stroke="url(#syncLightGrad1)"
+      stroke-width="11"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <circle cx="72" cy="34" r="7.5" fill="#0284C7" />
+    <circle cx="72" cy="34" r="3.5" fill="#FFFFFF" />
+
+    <path
+      d="M52 50 C60 55 68 60 68 70 C68 80 60 86 48 86 C36 86 28 79 28 68 L28 66"
+      stroke="url(#syncLightGrad2)"
+      stroke-width="11"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <circle cx="28" cy="66" r="7.5" fill="#059669" />
+    <circle cx="28" cy="66" r="3.5" fill="#FFFFFF" />
+
+    <circle cx="50" cy="50" r="5" fill="#0F172A" />
+    <circle cx="50" cy="50" r="2" fill="#FFFFFF" />
+  </g>
+</svg>

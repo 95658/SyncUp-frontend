@@ -165,15 +165,29 @@ export const ProjectsBoardView: React.FC = () => {
   ];
 
   // Jira Sprint aware: Active Sprint on Board, or all tasks if no active sprint
-  const activeSprint = sprints.find((s) => s.projectId === selectedProject?.id && s.status === 'ACTIVE');
+  const activeSprint = sprints.find(
+    (s) => (s.projectId === selectedProject?.id || !s.projectId) && s.status === 'ACTIVE'
+  );
 
   // Filter tasks by project and active sprint
   const projectTasks = selectedProject
     ? tasks.filter((t) => {
-        const matchesProject = t.projectId === selectedProject.id || !t.projectId;
+        const matchesProject =
+          t.projectId === selectedProject.id ||
+          t.projectName?.toLowerCase() === selectedProject.name?.toLowerCase() ||
+          !t.projectId;
         if (!matchesProject) return false;
+
+        // If an active sprint is running:
+        // Include tasks assigned to this active sprint, or tasks that belong to this project
+        // and aren't assigned to a different closed/other sprint.
         if (activeSprint) {
-          return t.sprintId === activeSprint.id;
+          const isExplicitlyInOtherSprint =
+            t.sprintId &&
+            t.sprintId !== activeSprint.id &&
+            sprints.some((s) => s.id === t.sprintId && s.status !== 'ACTIVE');
+          if (isExplicitlyInOtherSprint) return false;
+          return true;
         }
         return true;
       })
@@ -181,9 +195,11 @@ export const ProjectsBoardView: React.FC = () => {
 
   // Requirement 36: Filter by "All Tasks", "Assigned to Me", "My Team Tasks"
   const filteredTasks = projectTasks.filter((t) => {
+    const q = searchQuery.toLowerCase().trim();
     const matchesSearch =
-      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      !q ||
+      t.title.toLowerCase().includes(q) ||
+      (t.tags || []).some((tag) => tag.toLowerCase().includes(q));
 
     if (!matchesSearch) return false;
 
@@ -211,7 +227,8 @@ export const ProjectsBoardView: React.FC = () => {
       priority: 'MEDIUM',
       projectId: selectedProject?.id || 'main',
       projectName: selectedProject?.name || currentOrg.name,
-      tags: ['feature'],
+      sprintId: activeSprint?.id || null,
+      tags: ['feature', activeSprint ? 'sprint' : 'backlog'],
       assignees: [{ id: currentUser?.id || 'user-1', name: currentUser?.name || 'Member' }],
       dueDate: 'Upcoming',
       subtasks: [],
@@ -342,6 +359,7 @@ export const ProjectsBoardView: React.FC = () => {
 
       // Add sprint initial ticket if specified
       if (sprintTitle && newProj) {
+        const projSprint = useWorkspaceStore.getState().sprints.find((s) => s.projectId === newProj.id);
         await addNewTask({
           title: `[Sprint 1 Ticket] ${sprintTitle}`,
           description: sprintDesc || scopeDefinition || 'Initial sprint deliverable',
@@ -349,6 +367,7 @@ export const ProjectsBoardView: React.FC = () => {
           priority: 'HIGH',
           projectId: newProj.id,
           projectName: projName.trim(),
+          sprintId: projSprint?.id || null,
           tags: ['sprint', projType.toLowerCase()],
           assignees: [{ id: currentUser?.id || 'user-1', name: currentUser?.name || 'Lead' }],
           dueDate: projDueDate || 'Upcoming',
@@ -748,7 +767,10 @@ export const ProjectsBoardView: React.FC = () => {
             }}
           >
             {columns.map((col) => {
-              const colTasks = filteredTasks.filter((t) => t.status === col.id);
+              const colTasks = filteredTasks.filter((t) => {
+                const s = (t.status || 'TODO').toUpperCase().replace(/\s+/g, '_');
+                return s === col.id || (col.id === 'TODO' && (s === 'TODO' || s === 'TO_DO'));
+              });
 
               return (
                 <div

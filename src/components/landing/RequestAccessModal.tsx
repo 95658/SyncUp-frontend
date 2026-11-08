@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { X, Building, Mail, User, Users, FileText, CheckCircle2, Sparkles, Send } from 'lucide-react';
 import { landingTranslations } from '@/lib/landingI18n';
 import { Language } from '@/lib/i18n';
+import { SyncUpLogo } from '@/components/shared/SyncUpLogo';
 
 interface RequestAccessModalProps {
   isOpen: boolean;
@@ -91,7 +92,7 @@ export function RequestAccessModal({ isOpen, onClose, lang }: RequestAccessModal
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
+                gap: '8px',
                 fontSize: '11.5px',
                 fontWeight: 700,
                 color: 'var(--primary)',
@@ -101,7 +102,7 @@ export function RequestAccessModal({ isOpen, onClose, lang }: RequestAccessModal
                 marginBottom: '8px',
               }}
             >
-              <Sparkles size={13} />
+              <SyncUpLogo size={14} />
               <span>B2B Enterprise Provisioning</span>
             </div>
             <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>

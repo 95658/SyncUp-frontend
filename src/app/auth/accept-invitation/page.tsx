@@ -3,9 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, CheckCircle2, Lock, User, ArrowRight, Shield } from 'lucide-react';
+import { useUIStore } from '@/store/uiStore';
+import { SyncUpLogo } from '@/components/shared/SyncUpLogo';
 
 export default function AcceptInvitationPage() {
   const router = useRouter();
+  const { theme } = useUIStore();
+  const isDark = theme === 'dark';
   const [token, setToken] = useState('demo-token-123');
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
@@ -46,18 +50,25 @@ export default function AcceptInvitationPage() {
       {/* Brand Header */}
       <div style={{ textAlign: 'center', marginBottom: '28px' }}>
         <div style={{
-          width: '48px',
-          height: '48px',
-          borderRadius: '14px',
-          background: 'linear-gradient(135deg, #2563eb, #6366f1)',
+          width: '56px',
+          height: '56px',
+          borderRadius: '16px',
+          background: isDark
+            ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+            : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+          border: isDark
+            ? '1.5px solid rgba(56, 189, 248, 0.25)'
+            : '1.5px solid rgba(226, 232, 240, 0.95)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#ffffff',
-          boxShadow: '0 8px 16px rgba(37, 99, 235, 0.25)',
+          boxShadow: isDark
+            ? '0 8px 24px rgba(37, 99, 235, 0.35)'
+            : '0 8px 20px -4px rgba(37, 99, 235, 0.15), 0 4px 10px rgba(15, 23, 42, 0.05)',
           margin: '0 auto 14px auto',
+          padding: '8px',
         }}>
-          <Sparkles size={26} />
+          <SyncUpLogo size={36} mode={theme} />
         </div>
         <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.5px' }}>
           Join your team on Sync<span style={{ color: 'var(--primary)' }}>Up</span>

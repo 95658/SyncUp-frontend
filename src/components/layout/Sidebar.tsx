@@ -5,6 +5,7 @@ import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { showSnack } from '@/store/snackbarStore';
+import { SyncUpLogo } from '@/components/shared/SyncUpLogo';
 import {
   ShieldAlert,
   Building2,
@@ -49,7 +50,7 @@ export const Sidebar: React.FC = () => {
     auditLogsList,
   } = useWorkspaceStore();
   const { currentUser, activeRole } = useAuthStore();
-  const { setLogoutConfirmOpen, setProfileModalOpen, t, language } = useUIStore();
+  const { setLogoutConfirmOpen, setProfileModalOpen, t, language, theme } = useUIStore();
 
   const [isProjectsExpanded, setIsProjectsExpanded] = useState(true);
 
@@ -125,20 +126,25 @@ export const Sidebar: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '10px',
-              background: isPlatformOwner
-                ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)'
-                : 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+              width: '36px',
+              height: '36px',
+              borderRadius: '11px',
+              background: theme === 'dark'
+                ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+                : 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)',
+              border: theme === 'dark'
+                ? '1px solid rgba(56, 189, 248, 0.25)'
+                : '1px solid rgba(203, 213, 225, 0.9)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#ffffff',
-              boxShadow: '0 4px 12px rgba(15, 23, 42, 0.2)',
+              boxShadow: theme === 'dark' ? '0 4px 12px rgba(15, 23, 42, 0.25)' : '0 2px 8px rgba(15, 23, 42, 0.06)',
+              padding: '6px',
+              flexShrink: 0,
+              transition: 'all 0.2s ease',
             }}
           >
-            {isPlatformOwner ? <ShieldAlert size={19} color="#38bdf8" /> : <Sparkles size={18} />}
+            <SyncUpLogo size={24} mode={theme} />
           </div>
           <div>
             <div

@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { Layers, Sparkles, ArrowRight, ShieldCheck, CheckCircle2, LogIn } from 'lucide-react';
 import { landingTranslations } from '@/lib/landingI18n';
 import { useUIStore } from '@/store/uiStore';
+import { SyncUpLogo } from '@/components/shared/SyncUpLogo';
 
 interface LandingFooterProps {
   onRequestAccess: () => void;
 }
 
 export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
-  const { language } = useUIStore();
+  const { language, theme } = useUIStore();
   const t = landingTranslations[language].footer;
   const cta = landingTranslations[language].ctaBanner;
   const isRtl = language === 'ar';
@@ -166,14 +167,23 @@ export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
                   width: '36px',
                   height: '36px',
                   borderRadius: '10px',
-                  background: 'var(--primary-gradient)',
+                  background: theme === 'dark'
+                    ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+                    : 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)',
+                  border: theme === 'dark'
+                    ? '1px solid rgba(56, 189, 248, 0.25)'
+                    : '1px solid rgba(203, 213, 225, 0.9)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#ffffff',
+                  padding: '5px',
+                  boxShadow: theme === 'dark'
+                    ? '0 4px 12px rgba(37, 99, 235, 0.2)'
+                    : '0 2px 8px rgba(15, 23, 42, 0.06)',
+                  transition: 'all 0.25s ease',
                 }}
               >
-                <Layers size={20} />
+                <SyncUpLogo size={24} mode={theme} />
               </div>
               <span style={{ fontSize: '19px', fontWeight: 900, color: 'var(--text-main)' }}>SyncUp</span>
             </div>

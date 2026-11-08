@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Layers, Moon, Sun, Globe, ArrowRight, Menu, X, Sparkles, LogIn } from 'lucide-react';
 import { useUIStore } from '@/store/uiStore';
 import { landingTranslations } from '@/lib/landingI18n';
+import { SyncUpLogo } from '@/components/shared/SyncUpLogo';
 
 interface LandingNavbarProps {
   onRequestAccess: () => void;
@@ -54,20 +55,27 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
         >
           <div
             style={{
-              width: '40px',
-              height: '40px',
+              width: '42px',
+              height: '42px',
               borderRadius: '12px',
-              background: 'var(--primary-gradient)',
+              background: theme === 'dark'
+                ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+                : 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)',
+              border: theme === 'dark'
+                ? '1px solid rgba(56, 189, 248, 0.25)'
+                : '1px solid rgba(203, 213, 225, 0.9)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#ffffff',
-              boxShadow: 'var(--primary-glow)',
-              transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              boxShadow: theme === 'dark'
+                ? '0 4px 16px rgba(37, 99, 235, 0.25)'
+                : '0 4px 14px rgba(15, 23, 42, 0.08)',
+              transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              padding: '6px',
             }}
             className="logo-icon-box"
           >
-            <Layers size={22} />
+            <SyncUpLogo size={28} mode={theme} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span

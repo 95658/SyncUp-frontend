@@ -7,6 +7,7 @@ import { useUIStore } from '@/store/uiStore';
 import { showSnack } from '@/store/snackbarStore';
 import { superAdminApi } from '@/lib/api';
 import { Organization } from '@/types';
+import { SyncUpLogo } from '@/components/shared/SyncUpLogo';
 import {
   Building2,
   Users,
@@ -291,14 +292,14 @@ export const SuperAdminView: React.FC = () => {
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '6px',
+            gap: '8px',
             padding: '4px 12px',
             background: '#f0f9ff',
             border: '1px solid #bae6fd',
             borderRadius: '9999px',
             marginBottom: '10px',
           }}>
-            <ShieldCheck size={14} color="#0284c7" />
+            <SyncUpLogo size={15} mode="light" />
             <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#0369a1', letterSpacing: '0.04em' }}>
               SYNCUP PLATFORM CONTROL PLANE
             </span>

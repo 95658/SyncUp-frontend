@@ -33,8 +33,9 @@ export interface OrganizationMember {
   userId: string;
   user: User;
   organizationId: string;
-  role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'GUEST';
+  role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'GUEST' | 'TEAM_LEADER' | 'QA' | 'PM' | string;
   team?: string;
+  assignedProjectIds?: string[];
   status: 'ACTIVE' | 'INACTIVE' | 'REMOVED' | 'SUSPENDED';
   isOnline: boolean;
   joinedAt: string;
@@ -42,9 +43,15 @@ export interface OrganizationMember {
 
 export interface Team {
   id: string;
+  organizationId?: string;
   name: string;
   description?: string;
-  memberCount: number;
+  memberCount?: number;
+  leadId?: string;
+  leadName?: string;
+  color?: string;
+  projectIds?: string[];
+  createdAt?: string;
 }
 
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
