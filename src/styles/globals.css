@@ -291,6 +291,64 @@ a {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
+/* Global Select & Dropdown Styling — Guarantees arrow is NEVER stuck to the edge */
+select, .select-field {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 14px 14px;
+  padding-right: 36px !important;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+[data-theme='dark'] select,
+[data-theme='dark'] .select-field {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+/* RTL Support for Select Arrow & Spacing */
+[dir="rtl"] select,
+[dir="rtl"] .select-field,
+.rtl select,
+.rtl .select-field {
+  background-position: left 14px center !important;
+  padding-right: 14px !important;
+  padding-left: 36px !important;
+}
+
+/* Filter Pill Select Component */
+.filter-select-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.filter-select-pill svg.pill-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+[dir="rtl"] .filter-select-pill svg.pill-icon,
+.rtl .filter-select-pill svg.pill-icon {
+  left: auto;
+  right: 12px;
+}
+.filter-select-pill select {
+  padding-left: 34px !important;
+  padding-right: 36px !important;
+}
+[dir="rtl"] .filter-select-pill select,
+.rtl .filter-select-pill select {
+  padding-left: 36px !important;
+  padding-right: 34px !important;
+}
+
 /* Avatar */
 .avatar {
   display: inline-flex;

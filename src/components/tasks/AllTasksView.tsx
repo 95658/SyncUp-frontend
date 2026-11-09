@@ -233,7 +233,7 @@ export const AllTasksView: React.FC = () => {
               onChange={(e) => setSearch(e.target.value)}
               style={{
                 width: '100%',
-                padding: isAr ? '8px 36px 8px 12px' : '8px 12px 8px 36px',
+                padding: isAr ? '8px 36px 8px 14px' : '8px 14px 8px 36px',
                 borderRadius: '8px',
                 border: '1px solid var(--border-light)',
                 background: 'var(--bg-app)',
@@ -245,13 +245,12 @@ export const AllTasksView: React.FC = () => {
           </div>
 
           {/* Project Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <FolderOpen size={15} color="var(--text-muted)" />
+          <div className="filter-select-pill">
+            <FolderOpen size={14} color="var(--text-muted)" className="pill-icon" />
             <select
               value={selectedProjectFilter}
               onChange={(e) => setSelectedProjectFilter(e.target.value)}
               style={{
-                padding: '8px 12px',
                 borderRadius: '8px',
                 border: '1px solid var(--border-light)',
                 background: 'var(--bg-app)',
@@ -259,6 +258,7 @@ export const AllTasksView: React.FC = () => {
                 fontSize: '12.5px',
                 outline: 'none',
                 fontWeight: 600,
+                height: '35px',
               }}
             >
               <option value="ALL">{isAr ? 'جميع المشاريع' : 'All Projects'}</option>
@@ -269,13 +269,12 @@ export const AllTasksView: React.FC = () => {
           </div>
 
           {/* Sprint Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <SlidersHorizontal size={15} color="var(--text-muted)" />
+          <div className="filter-select-pill">
+            <SlidersHorizontal size={14} color="var(--text-muted)" className="pill-icon" />
             <select
               value={selectedSprintFilter}
               onChange={(e) => setSelectedSprintFilter(e.target.value)}
               style={{
-                padding: '8px 12px',
                 borderRadius: '8px',
                 border: '1px solid var(--border-light)',
                 background: 'var(--bg-app)',
@@ -283,6 +282,7 @@ export const AllTasksView: React.FC = () => {
                 fontSize: '12.5px',
                 outline: 'none',
                 fontWeight: 600,
+                height: '35px',
               }}
             >
               <option value="ALL">{isAr ? 'جميع السبرنتات' : 'All Sprints'}</option>
@@ -294,13 +294,12 @@ export const AllTasksView: React.FC = () => {
           </div>
 
           {/* Task Type Filter (Bug vs Ticket vs Task) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Filter size={15} color="var(--text-muted)" />
+          <div className="filter-select-pill">
+            <Filter size={14} color="var(--text-muted)" className="pill-icon" />
             <select
               value={selectedTypeFilter}
               onChange={(e) => setSelectedTypeFilter(e.target.value)}
               style={{
-                padding: '8px 12px',
                 borderRadius: '8px',
                 border: '1px solid var(--border-light)',
                 background: 'var(--bg-app)',
@@ -308,6 +307,7 @@ export const AllTasksView: React.FC = () => {
                 fontSize: '12.5px',
                 outline: 'none',
                 fontWeight: 600,
+                height: '35px',
               }}
             >
               <option value="ALL">{isAr ? 'جميع الأنواع' : 'All Types'}</option>
@@ -318,12 +318,12 @@ export const AllTasksView: React.FC = () => {
           </div>
 
           {/* Status Filter */}
-          <div>
+          <div className="filter-select-pill">
+            <Layers size={14} color="var(--text-muted)" className="pill-icon" />
             <select
               value={selectedStatusFilter}
               onChange={(e) => setSelectedStatusFilter(e.target.value)}
               style={{
-                padding: '8px 12px',
                 borderRadius: '8px',
                 border: '1px solid var(--border-light)',
                 background: 'var(--bg-app)',
@@ -331,6 +331,7 @@ export const AllTasksView: React.FC = () => {
                 fontSize: '12.5px',
                 outline: 'none',
                 fontWeight: 600,
+                height: '35px',
               }}
             >
               <option value="ALL">{isAr ? 'جميع الحالات' : 'All Statuses'}</option>
@@ -483,7 +484,7 @@ export const AllTasksView: React.FC = () => {
                             showSnack(isAr ? `تم تحديث الحالة إلى ${newSt}` : `Status updated to ${newSt}`, 'info');
                           }}
                           style={{
-                            padding: '4px 8px',
+                            padding: isAr ? '5px 12px 5px 28px' : '5px 28px 5px 12px',
                             borderRadius: '6px',
                             border: '1px solid var(--border-light)',
                             background: t.status === 'DONE' ? '#ecfdf5' : t.status === 'IN_PROGRESS' ? '#eff6ff' : 'var(--bg-app)',

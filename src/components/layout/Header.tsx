@@ -491,6 +491,10 @@ export const Header: React.FC = () => {
                 color: '#0284c7',
                 cursor: 'pointer',
                 outline: 'none',
+                paddingRight: '22px',
+                paddingLeft: '4px',
+                backgroundPosition: isAr ? 'left 2px center' : 'right 4px center',
+                backgroundSize: '12px 12px',
               }}
             >
               <option value="PLATFORM_OWNER">Platform Owner</option>

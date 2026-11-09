@@ -251,13 +251,12 @@ export const JiraBacklogView: React.FC<JiraBacklogViewProps> = ({ projectId }) =
           </div>
 
           {/* Type Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Filter size={15} color="var(--text-muted)" />
+          <div className="filter-select-pill">
+            <Filter size={14} color="var(--text-muted)" className="pill-icon" />
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value as any)}
               style={{
-                padding: '8px 12px',
                 borderRadius: '8px',
                 border: '1px solid var(--border-light)',
                 background: 'var(--bg-app)',
@@ -265,6 +264,7 @@ export const JiraBacklogView: React.FC<JiraBacklogViewProps> = ({ projectId }) =
                 fontSize: '12.5px',
                 outline: 'none',
                 fontWeight: 600,
+                height: '35px',
               }}
             >
               <option value="ALL">{isAr ? 'جميع الأنواع' : 'All Types'}</option>

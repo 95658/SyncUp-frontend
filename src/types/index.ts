@@ -35,6 +35,7 @@ export interface OrganizationMember {
   organizationId: string;
   role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'GUEST' | 'TEAM_LEADER' | 'QA' | 'PM' | string;
   team?: string;
+  password?: string;
   assignedProjectIds?: string[];
   status: 'ACTIVE' | 'INACTIVE' | 'REMOVED' | 'SUSPENDED';
   isOnline: boolean;

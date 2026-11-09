@@ -412,7 +412,8 @@ export const Sidebar: React.FC = () => {
                           setIsProjectsExpanded(!isProjectsExpanded);
                         }}
                         style={{
-                          padding: '6px 8px',
+                          padding: '6px 10px',
+                          margin: isAr ? '0 0 0 4px' : '0 4px 0 0',
                           border: 'none',
                           background: 'transparent',
                           color: 'var(--text-muted)',
@@ -434,7 +435,7 @@ export const Sidebar: React.FC = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '2px',
-                        padding: '4px 0 6px 30px',
+                        padding: isAr ? '4px 30px 6px 0' : '4px 0 6px 30px',
                         animation: 'fadeIn 0.15s ease-out',
                       }}
                     >

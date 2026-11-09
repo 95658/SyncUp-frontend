@@ -281,29 +281,54 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     if (!activeOrgId) return;
 
     const assignedProjectIds = memberData.assignedProjectIds || (memberData.projectId ? [memberData.projectId] : []);
+    const memberEmail = memberData.email || memberData.user?.email || '';
+    const memberName = memberData.name || memberData.user?.name || memberEmail.split('@')[0];
+    const memberTitle = memberData.jobTitle || memberData.user?.jobTitle || 'Team Member';
+    const memberPassword = memberData.password || `SyncUp#${Math.floor(1000 + Math.random() * 9000)}`;
 
     const newMem: OrganizationMember = {
       id: `mem-${Date.now()}`,
       userId: `u-${Date.now()}`,
       user: {
         id: `u-${Date.now()}`,
-        name: memberData.name || memberData.email.split('@')[0],
-        email: memberData.email,
-        jobTitle: memberData.jobTitle || 'Team Member',
+        name: memberName,
+        email: memberEmail,
+        jobTitle: memberTitle,
         isPlatformOwner: false,
         status: 'ACTIVE',
       },
       organizationId: activeOrgId,
       role: memberData.role || 'MEMBER',
       team: memberData.team || 'Core Engineering',
+      password: memberPassword,
       assignedProjectIds,
       status: 'ACTIVE',
       isOnline: true,
       joinedAt: 'Today',
     };
 
-    const updated = [newMem, ...members];
+    const updated = [newMem, ...members.filter((m) => m.user?.email?.toLowerCase() !== memberEmail.toLowerCase())];
     saveToStorage(`syncup_members_${activeOrgId}`, updated);
+
+    // Save credentials to localStorage for instant seamless sign-in
+    if (typeof window !== 'undefined' && memberEmail) {
+      try {
+        const rawCreds = localStorage.getItem('syncup_member_credentials');
+        const credsMap = rawCreds ? JSON.parse(rawCreds) : {};
+        credsMap[memberEmail.toLowerCase().trim()] = {
+          password: memberPassword,
+          orgId: activeOrgId,
+          name: memberName,
+          role: newMem.role,
+          jobTitle: memberTitle,
+          team: newMem.team,
+          projectIds: assignedProjectIds,
+        };
+        localStorage.setItem('syncup_member_credentials', JSON.stringify(credsMap));
+      } catch (e) {
+        console.warn('Failed to save member credentials:', e);
+      }
+    }
 
     // If projects were assigned, update their teamMembers lists
     let updatedProjects = projects;
@@ -325,8 +350,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
     set({ members: updated, projects: updatedProjects });
 
-    // Try backend sync
-    organizationsApi.inviteMember(activeOrgId, { email: memberData.email, role: memberData.role || 'MEMBER' }).catch(() => null);
+    // Try backend sync silently without blocking UI
+    organizationsApi.inviteMember(activeOrgId, { email: memberEmail, role: memberData.role || 'MEMBER' }).catch(() => null);
   },
 
   removeMember: async (memberId) => {
@@ -351,10 +376,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     const { activeOrgId, members, projects } = get();
     const updated = members.map((m) => {
       if (m.id !== memberId) return m;
+      const newPass = updates.password !== undefined ? updates.password : m.password;
       return {
         ...m,
         role: updates.role || m.role,
         team: updates.team !== undefined ? updates.team : m.team,
+        password: newPass,
         assignedProjectIds: updates.assignedProjectIds !== undefined ? updates.assignedProjectIds : m.assignedProjectIds,
         user: {
           ...m.user,
@@ -363,7 +390,31 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         },
       };
     });
-    if (activeOrgId) saveToStorage(`syncup_members_${activeOrgId}`, updated);
+
+    if (activeOrgId) {
+      saveToStorage(`syncup_members_${activeOrgId}`, updated);
+    }
+
+    // Also update syncup_member_credentials if member exists
+    const target = updated.find((m) => m.id === memberId);
+    if (typeof window !== 'undefined' && target?.user?.email) {
+      try {
+        const rawCreds = localStorage.getItem('syncup_member_credentials');
+        const credsMap = rawCreds ? JSON.parse(rawCreds) : {};
+        const emailKey = target.user.email.toLowerCase().trim();
+        credsMap[emailKey] = {
+          ...credsMap[emailKey],
+          password: target.password,
+          orgId: activeOrgId,
+          role: target.role,
+          name: target.user.name,
+          jobTitle: target.user.jobTitle,
+        };
+        localStorage.setItem('syncup_member_credentials', JSON.stringify(credsMap));
+      } catch (e) {
+        console.warn('Credentials sync error:', e);
+      }
+    }
 
     // Also update project teamMembers if assignedProjectIds was updated
     let updatedProjects = projects;

@@ -208,6 +208,93 @@ export default function LoginPage() {
           }
         }
 
+        // Check invited / created member credentials
+        if (typeof window !== 'undefined') {
+          try {
+            const rawCreds = localStorage.getItem('syncup_member_credentials');
+            const credsMap = rawCreds ? JSON.parse(rawCreds) : {};
+            const memberCred = credsMap[cleanEmail];
+
+            if (memberCred) {
+              if (loginPassword !== memberCred.password) {
+                setError(
+                  language === 'ar'
+                    ? 'كلمة المرور غير صحيحة لحساب هذا العضو'
+                    : 'Invalid password for this member account'
+                );
+                setLoading(false);
+                return;
+              }
+
+              const role = memberCred.role === 'ADMIN' ? 'ORG_ADMIN' : 'ORG_MEMBER';
+              const dummyToken = 'mock-jwt-token-member-' + Date.now();
+              loginUser(
+                {
+                  id: 'member-' + cleanEmail,
+                  name: memberCred.name || cleanEmail.split('@')[0],
+                  email: cleanEmail,
+                  isPlatformOwner: false,
+                  status: 'ACTIVE',
+                  jobTitle: memberCred.jobTitle || 'Team Member',
+                },
+                role,
+                dummyToken
+              );
+
+              if (memberCred.orgId) {
+                useWorkspaceStore.getState().setActiveOrgId(memberCred.orgId);
+                localStorage.setItem('syncup_active_org_id', memberCred.orgId);
+              }
+              useWorkspaceStore.getState().setCurrentView('dashboard');
+              localStorage.setItem('syncup_current_view', 'dashboard');
+              router.replace('/workspace');
+              return;
+            }
+
+            // Also check organization members lists in localStorage
+            for (const org of (allOrgs || [])) {
+              const rawMems = localStorage.getItem(`syncup_members_${org.id}`);
+              if (rawMems) {
+                const orgMems = JSON.parse(rawMems);
+                const found = orgMems.find((m: any) => m.user?.email?.toLowerCase().trim() === cleanEmail);
+                if (found) {
+                  if (found.password && loginPassword !== found.password) {
+                    setError(
+                      language === 'ar'
+                        ? 'كلمة المرور غير صحيحة لحساب هذا العضو'
+                        : 'Invalid password for this member account'
+                    );
+                    setLoading(false);
+                    return;
+                  }
+                  const role = found.role === 'ADMIN' ? 'ORG_ADMIN' : 'ORG_MEMBER';
+                  const dummyToken = 'mock-jwt-token-member-' + Date.now();
+                  loginUser(
+                    {
+                      id: found.userId || 'mem-' + cleanEmail,
+                      name: found.user?.name || cleanEmail.split('@')[0],
+                      email: cleanEmail,
+                      isPlatformOwner: false,
+                      status: 'ACTIVE',
+                      jobTitle: found.user?.jobTitle || 'Team Member',
+                    },
+                    role,
+                    dummyToken
+                  );
+                  useWorkspaceStore.getState().setActiveOrgId(org.id);
+                  localStorage.setItem('syncup_active_org_id', org.id);
+                  useWorkspaceStore.getState().setCurrentView('dashboard');
+                  localStorage.setItem('syncup_current_view', 'dashboard');
+                  router.replace('/workspace');
+                  return;
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('Member auth check error:', e);
+          }
+        }
+
         if (loginEmail.includes('@') && loginPassword.length >= 6) {
           const dummyToken = 'mock-jwt-token-custom-' + Date.now();
           loginUser(

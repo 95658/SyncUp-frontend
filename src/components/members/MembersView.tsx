@@ -32,6 +32,10 @@ import {
   Crown,
   ChevronRight,
   Sparkles,
+  Key,
+  Eye,
+  EyeOff,
+  Copy,
 } from 'lucide-react';
 
 const TEAM_PRESET_COLORS = [
@@ -91,6 +95,8 @@ export const MembersView: React.FC = () => {
   const [editingMember, setEditingMember] = useState<OrganizationMember | null>(null);
   const [editRole, setEditRole] = useState<'ADMIN' | 'MEMBER' | 'TEAM_LEADER' | 'QA' | 'PM'>('MEMBER');
   const [editTitle, setEditTitle] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [showEditPassword, setShowEditPassword] = useState(false);
 
   // ─── Invite Member Modal State ──────────────────────────────────────────────
   const [inviteName, setInviteName] = useState('');
@@ -98,7 +104,25 @@ export const MembersView: React.FC = () => {
   const [inviteTitle, setInviteTitle] = useState('');
   const [inviteRole, setInviteRole] = useState<'ADMIN' | 'MEMBER' | 'TEAM_LEADER' | 'QA' | 'PM'>('MEMBER');
   const [inviteTeam, setInviteTeam] = useState('');
+  const [invitePassword, setInvitePassword] = useState('');
+  const [showInvitePassword, setShowInvitePassword] = useState(false);
   const [inviteProjectIds, setInviteProjectIds] = useState<string[]>([]);
+
+  const generateRandomPassword = () => {
+    const chars = 'abcdefghijkmnpqrstuvwxyz23456789';
+    let pass = 'SyncUp#';
+    for (let i = 0; i < 4; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setInvitePassword(pass + '!');
+  };
+
+  const openInviteModal = () => {
+    setInviteTeam(teams[0]?.name || '');
+    setInviteProjectIds(projects[0] ? [projects[0].id] : []);
+    generateRandomPassword();
+    setInviteMemberModalOpen(true);
+  };
 
   const [pendingInvites, setPendingInvites] = useState<{
     id: string;
@@ -259,6 +283,8 @@ export const MembersView: React.FC = () => {
     setEditingMember(member);
     setEditRole((member.role as any) || 'MEMBER');
     setEditTitle((member.user as any)?.jobTitle || '');
+    setEditPassword(member.password || '');
+    setShowEditPassword(false);
     setIsEditMemberModalOpen(true);
   };
 
@@ -270,8 +296,14 @@ export const MembersView: React.FC = () => {
       await updateMemberDetails(editingMember.id, {
         role: editRole,
         jobTitle: editTitle.trim(),
+        password: editPassword.trim() || undefined,
       });
-      showSnack(isAr ? 'تم تحديث بيانات العضو بنجاح' : 'Member details updated successfully!', 'success');
+      showSnack(
+        isAr
+          ? 'تم تحديث بيانات العضو وكلمة المرور بنجاح'
+          : 'Member details and password updated successfully!',
+        'success'
+      );
       setIsEditMemberModalOpen(false);
       setEditingMember(null);
     } catch (err: any) {
@@ -311,24 +343,21 @@ export const MembersView: React.FC = () => {
     }
   };
 
-  // Invite Member with Team & Projects
+  // Invite Member with Team & Projects & Password
   const handleSendInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inviteEmail.trim() || !activeOrgId) return;
 
+    const chosenTeam = inviteTeam || (teams[0]?.name || 'Core Engineering');
+    const finalPassword = invitePassword.trim() || `SyncUp#${Math.floor(1000 + Math.random() * 9000)}`;
+
     try {
-      const inviteRes = await organizationsApi.inviteMember(activeOrgId, {
-        email: inviteEmail.trim(),
-        role: inviteRole,
-      });
-
-      const chosenTeam = inviteTeam || (teams[0]?.name || 'Core Engineering');
-
-      // Also create local member record so they are immediately visible in the UI
+      // 1. Create member in workspaceStore (persisted in localStorage + credentials store)
       await addNewMember({
         userId: `user-${Date.now()}`,
         role: inviteRole,
         team: chosenTeam,
+        password: finalPassword,
         assignedProjectIds: inviteProjectIds,
         user: {
           id: `user-${Date.now()}`,
@@ -339,8 +368,9 @@ export const MembersView: React.FC = () => {
         },
       });
 
+      // 2. Add to pending invites table
       const newInvite = {
-        id: inviteRes?.id || `inv-${Date.now()}`,
+        id: `inv-${Date.now()}`,
         name: inviteName.trim() || inviteEmail.split('@')[0],
         email: inviteEmail.trim(),
         title: inviteTitle.trim() || 'Software Engineer',
@@ -349,20 +379,35 @@ export const MembersView: React.FC = () => {
         projectType: 'Software',
         date: 'Today',
       };
-
       setPendingInvites((prev) => [newInvite, ...prev]);
+
+      // 3. Attempt backend sync safely without throwing or blocking UI if offline/cors
+      organizationsApi
+        .inviteMember(activeOrgId, {
+          email: inviteEmail.trim(),
+          role: inviteRole,
+        })
+        .catch((err) => {
+          console.warn('Backend invitation sync bypassed or offline:', err);
+        });
+
+      // 4. Reset & Close
       setInviteName('');
       setInviteEmail('');
       setInviteTitle('');
+      setInvitePassword('');
       setInviteTeam('');
       setInviteProjectIds([]);
       setInviteMemberModalOpen(false);
+
       showSnack(
-        isAr ? `تمت إضافة ودعوة ${inviteEmail} بنجاح!` : `Invitation sent to ${inviteEmail} and added to workspace!`,
+        isAr
+          ? `تمت إضافة العضو بنجاح! كلمة المرور لتسجيل الدخول: ${finalPassword}`
+          : `Member ${inviteEmail} added successfully! Login password: ${finalPassword}`,
         'success'
       );
     } catch (err: any) {
-      showSnack(err.message || 'Failed to send invitation', 'error');
+      showSnack(err.message || 'Failed to add member', 'error');
     }
   };
 
@@ -419,11 +464,7 @@ export const MembersView: React.FC = () => {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => {
-                setInviteTeam(teams[0]?.name || '');
-                setInviteProjectIds(projects[0] ? [projects[0].id] : []);
-                setInviteMemberModalOpen(true);
-              }}
+              onClick={openInviteModal}
               style={{ padding: '9px 18px', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <UserPlus size={16} />
@@ -753,16 +794,39 @@ export const MembersView: React.FC = () => {
                               <FolderPlus size={16} color="var(--primary)" />
                             </button>
 
-                            {/* Edit Role / Title */}
+                            {/* Edit Role / Title / Password */}
                             <button
                               type="button"
                               className="btn-ghost"
                               onClick={() => openEditMemberModal(member)}
-                              title={isAr ? 'تعديل الدور والمسمى الوظيفي' : 'Edit Role & Title'}
+                              title={isAr ? 'تعديل الدور وكلمة المرور' : 'Edit Role & Password'}
                               style={{ padding: '6px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                             >
                               <Edit2 size={15} color="var(--text-secondary)" />
                             </button>
+
+                            {/* View / Copy Login Password */}
+                            {member.password && (
+                              <button
+                                type="button"
+                                className="btn-ghost"
+                                onClick={() => {
+                                  if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                                    navigator.clipboard.writeText(member.password!);
+                                  }
+                                  showSnack(
+                                    isAr
+                                      ? `تم نسخ كلمة المرور: ${member.password}`
+                                      : `Password copied to clipboard: ${member.password}`,
+                                    'info'
+                                  );
+                                }}
+                                title={isAr ? `نسخ كلمة المرور (${member.password})` : `Copy Login Password (${member.password})`}
+                                style={{ padding: '6px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+                              >
+                                <Key size={15} color="#eab308" />
+                              </button>
+                            )}
 
                             {/* Suspend / Activate */}
                             {member.role !== 'OWNER' && (
@@ -1688,6 +1752,48 @@ export const MembersView: React.FC = () => {
                 />
               </div>
 
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '12.5px', fontWeight: 700 }}>
+                    {isAr ? 'كلمة المرور لتسجيل الدخول' : 'Login Password'}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowEditPassword(!showEditPassword)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--primary)',
+                      fontSize: '11.5px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {showEditPassword ? <EyeOff size={13} /> : <Eye size={13} />}
+                    <span>{showEditPassword ? (isAr ? 'إخفاء' : 'Hide') : (isAr ? 'إظهار' : 'Show')}</span>
+                  </button>
+                </div>
+                <input
+                  type={showEditPassword ? 'text' : 'password'}
+                  placeholder="e.g. SyncUp#2026!"
+                  value={editPassword}
+                  onChange={(e) => setEditPassword(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--bg-app)',
+                    color: 'var(--text-main)',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
                 <button
                   type="button"
@@ -1856,6 +1962,74 @@ export const MembersView: React.FC = () => {
                     <option value="ADMIN">Organization Admin</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Account Password for Member */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)' }}>
+                    {isAr ? 'كلمة المرور لتسجيل الدخول' : 'Account Login Password'} *
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={generateRandomPassword}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--primary)',
+                        fontSize: '11.5px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontWeight: 700,
+                      }}
+                    >
+                      <Key size={12} />
+                      <span>{isAr ? 'توليد تلقائي' : 'Auto-Generate'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowInvitePassword(!showInvitePassword)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        fontSize: '11.5px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                      }}
+                    >
+                      {showInvitePassword ? <EyeOff size={12} /> : <Eye size={12} />}
+                      <span>{showInvitePassword ? (isAr ? 'إخفاء' : 'Hide') : (isAr ? 'إظهار' : 'Show')}</span>
+                    </button>
+                  </div>
+                </div>
+                <input
+                  type={showInvitePassword ? 'text' : 'password'}
+                  required
+                  placeholder="e.g. SyncUp#2026!"
+                  value={invitePassword}
+                  onChange={(e) => setInvitePassword(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--bg-app)',
+                    color: 'var(--text-main)',
+                    outline: 'none',
+                    fontSize: '13px',
+                  }}
+                />
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px', display: 'block' }}>
+                  {isAr
+                    ? 'سيستخدم الموظف كلمة المرور هذه لتسجيل الدخول إلى حسابه في SyncUp.'
+                    : 'The employee will use this password to sign in directly to their account.'}
+                </span>
               </div>
 
               {/* Team Selector */}
