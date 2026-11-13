@@ -116,11 +116,14 @@ export const SuperAdminView: React.FC = () => {
               activeOrganizations: activeOrgsCount,
               totalUsers: usersCount,
               activeUsers: activeUsersCount,
+              monthlyRecurringRevenue: 0,
+              totalRevenue: 0,
+              cashFlowGrowth: '0.0%',
             },
-            administratorsList: admins?.length ? admins : state.administratorsList,
-            platformUsersList: users?.length ? users : state.platformUsersList,
-            platformInvitationsList: invitations?.length ? invitations : state.platformInvitationsList,
-            auditLogsList: logs?.length ? logs : state.auditLogsList,
+            administratorsList: admins || [],
+            platformUsersList: users || [],
+            platformInvitationsList: invitations || [],
+            auditLogsList: logs || [],
           };
         });
       } catch (err) {
@@ -415,11 +418,13 @@ export const SuperAdminView: React.FC = () => {
                 >
                   <DollarSign size={24} color="#059669" />
                 </div>
-                <span className="badge badge-success">+18.4% MoM</span>
+                <span className="badge badge-success">
+                  0.0% MoM
+                </span>
               </div>
               <div>
                 <div style={{ fontSize: '32px', fontWeight: 900, color: '#065f46' }}>
-                  ${(adminAnalytics as any)?.totalRevenue ? (adminAnalytics as any).totalRevenue.toLocaleString() : '384,500'}
+                  $0
                 </div>
                 <div style={{ fontSize: '13px', color: '#059669', marginTop: '4px', fontWeight: 700 }}>
                   {isAr ? 'إجمالي دخل المنصة (ERP Income)' : 'Platform Total Income (ERP)'}
@@ -448,7 +453,7 @@ export const SuperAdminView: React.FC = () => {
               </div>
               <div>
                 <div style={{ fontSize: '32px', fontWeight: 900, color: '#0284c7' }}>
-                  ${(adminAnalytics as any)?.monthlyRecurringRevenue ? (adminAnalytics as any).monthlyRecurringRevenue.toLocaleString() : '32,450'}/mo
+                  $0/mo
                 </div>
                 <div style={{ fontSize: '13px', color: '#0369a1', marginTop: '4px', fontWeight: 700 }}>
                   {isAr ? 'الإيراد الشهري المتكرر' : 'Monthly Recurring Revenue'}
@@ -477,7 +482,7 @@ export const SuperAdminView: React.FC = () => {
               </div>
               <div>
                 <div style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a' }}>
-                  {Math.max(adminAnalytics.totalOrganizations || 0, organizations.length)}
+                  {organizations.length}
                 </div>
                 <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', fontWeight: 600 }}>
                   Client Organizations
@@ -506,11 +511,7 @@ export const SuperAdminView: React.FC = () => {
               </div>
               <div>
                 <div style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a' }}>
-                  {Math.max(
-                    adminAnalytics.totalUsers || 0,
-                    platformUsersList?.length || 0,
-                    organizations.reduce((acc, o) => acc + (o.memberCount || 1), 0)
-                  )}
+                  {platformUsersList?.length || 0}
                 </div>
                 <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', fontWeight: 600 }}>
                   Active Team Users

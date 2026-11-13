@@ -621,24 +621,20 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         createdAt: new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       }));
 
-      // Combine with locally created/customized orgs (preserving logoUrl and branding)
-      const localOrgs = loadFromStorage<Organization[]>('syncup_orgs', []);
-      const mergedOrgsMap = new Map<string, Organization>();
-      localOrgs.forEach((o) => mergedOrgsMap.set(o.id, o));
-      formattedOrgs.forEach((o) => {
-        const existing = mergedOrgsMap.get(o.id);
-        mergedOrgsMap.set(o.id, {
-          ...existing,
-          ...o,
-          logoUrl: o.logoUrl || existing?.logoUrl,
-        });
-      });
-      const allOrgs = Array.from(mergedOrgsMap.values());
+      // The live backend is the source of truth for organizations
+      const allOrgs = formattedOrgs;
       saveToStorage('syncup_orgs', allOrgs);
 
       let targetOrgId = preferredOrgId || get().activeOrgId || (typeof window !== 'undefined' ? localStorage.getItem('syncup_active_org_id') : '') || '';
-      if (!targetOrgId && allOrgs.length > 0) {
-        targetOrgId = allOrgs[0].id;
+      if (!allOrgs.some((o) => o.id === targetOrgId)) {
+        targetOrgId = allOrgs.length > 0 ? allOrgs[0].id : '';
+        if (typeof window !== 'undefined') {
+          if (targetOrgId) {
+            localStorage.setItem('syncup_active_org_id', targetOrgId);
+          } else {
+            localStorage.removeItem('syncup_active_org_id');
+          }
+        }
       }
 
       // Sync Platform Analytics for Super Admin
@@ -647,19 +643,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         analyticsData = await superAdminApi.getAnalytics().catch(() => null);
       } catch {}
 
-      const totalOrgsCount = Math.max(analyticsData?.totalOrganizations ?? 0, allOrgs.length);
-      const activeOrgsCount = Math.max(
-        analyticsData?.activeOrganizations ?? 0,
-        allOrgs.filter((o) => o.status === 'ACTIVE').length
-      );
-      const totalUsersCount = Math.max(
-        analyticsData?.totalUsers ?? 0,
-        allOrgs.reduce((acc, o) => acc + (o.memberCount || 1), 0)
-      );
-      const activeUsersCount = Math.max(
-        analyticsData?.activeUsers ?? 0,
-        allOrgs.reduce((acc, o) => acc + (o.status === 'ACTIVE' ? (o.memberCount || 1) : 0), 0)
-      );
+      const totalOrgsCount = analyticsData?.totalOrganizations ?? allOrgs.length;
+      const activeOrgsCount = analyticsData?.activeOrganizations ?? allOrgs.filter((o) => o.status === 'ACTIVE').length;
+      const totalUsersCount = analyticsData?.totalUsers ?? 0;
+      const activeUsersCount = analyticsData?.activeUsers ?? 0;
 
       set({
         organizations: allOrgs,
@@ -671,6 +658,9 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
           activeOrganizations: activeOrgsCount,
           totalUsers: totalUsersCount,
           activeUsers: activeUsersCount,
+          monthlyRecurringRevenue: 0,
+          totalRevenue: 0,
+          cashFlowGrowth: '0.0%',
         },
       });
 

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useAuthStore } from '@/store/authStore';
+import { useUIStore } from '@/store/uiStore';
 import {
   CheckCircle2,
   Clock,
@@ -16,6 +17,7 @@ import {
   Plus,
   Inbox,
   FolderPlus,
+  Activity,
 } from 'lucide-react';
 
 export const DashboardView: React.FC = () => {
@@ -30,6 +32,8 @@ export const DashboardView: React.FC = () => {
     addNewTask,
   } = useWorkspaceStore();
   const { currentUser } = useAuthStore();
+  const { language } = useUIStore();
+  const isAr = language === 'ar';
 
   const [taskFilter, setTaskFilter] = useState<'ALL' | 'HIGH' | 'DUE_SOON'>('ALL');
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
@@ -515,71 +519,69 @@ export const DashboardView: React.FC = () => {
               </span>
             </div>
 
-            {/* Requirement 16: For Organization Owner, see Team & Team Members Activity */}
-            {(() => {
-              const displayActivities =
-                activities.length > 0
-                  ? activities
-                  : [
-                      {
-                        id: 'act-1',
-                        userName: 'Ziad Ghabour',
-                        action: 'moved task to In Review',
-                        target: 'Authentication & Session Cookies',
-                        timestamp: '15m ago',
-                      },
-                      {
-                        id: 'act-2',
-                        userName: 'Sarah Lin (QA)',
-                        action: 'approved QA testing for',
-                        target: 'Prisma DB Migration Schema',
-                        timestamp: '1h ago',
-                      },
-                      {
-                        id: 'act-3',
-                        userName: 'Kareem Tarek',
-                        action: 'uploaded project deliverable',
-                        target: 'Sprint1_Security_Report.pdf',
-                        timestamp: '2h ago',
-                      },
-                      {
-                        id: 'act-4',
-                        userName: 'Ahmed Abdelfatah',
-                        action: 'scheduled Sprint Planning Poker',
-                        target: 'Sprint 1 Estimation',
-                        timestamp: '4h ago',
-                      },
-                    ];
-
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  {displayActivities.slice(0, 5).map((activity) => (
-                    <div key={activity.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                      <div
-                        className="avatar"
-                        style={{
-                          width: '32px',
-                          height: '32px',
-                          fontSize: '11px',
-                          background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {activity.userName ? activity.userName.split(' ').map((n) => n[0]).join('').substring(0, 2) : 'U'}
-                      </div>
-                      <div style={{ flex: 1, fontSize: '13px', lineHeight: 1.45 }}>
-                        <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{activity.userName} </span>
-                        <span style={{ color: 'var(--text-secondary)' }}>{activity.action} </span>
-                        <span style={{ fontWeight: 600, color: 'var(--primary)' }}>&ldquo;{activity.target}&rdquo;</span>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          {activity.timestamp}
-                        </div>
+            {/* Live Feed: Real Team & Team Members Activity */}
+            {activities.length === 0 ? (
+              <div
+                style={{
+                  padding: '32px 16px',
+                  textAlign: 'center',
+                  background: 'var(--bg-app)',
+                  borderRadius: '12px',
+                  border: '1px dashed var(--border-light)',
+                }}
+              >
+                <div
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    background: 'var(--bg-card)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 10px auto',
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  <Activity size={18} />
+                </div>
+                <div style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-main)' }}>
+                  {isAr ? 'لا توجد أنشطة مسجلة بعد' : 'No recent activity yet'}
+                </div>
+                <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: '3px' }}>
+                  {isAr
+                    ? 'ستظهر هنا تحركات المهام والتحديثات فور قيام أعضاء الفريق بها'
+                    : 'Task updates, status changes, and member actions will appear here in real time.'}
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {activities.slice(0, 5).map((activity) => (
+                  <div key={activity.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                    <div
+                      className="avatar"
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        fontSize: '11px',
+                        background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {activity.userName ? activity.userName.split(' ').map((n) => n[0]).join('').substring(0, 2) : 'U'}
+                    </div>
+                    <div style={{ flex: 1, fontSize: '13px', lineHeight: 1.45 }}>
+                      <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{activity.userName} </span>
+                      <span style={{ color: 'var(--text-secondary)' }}>{activity.action} </span>
+                      <span style={{ fontWeight: 600, color: 'var(--primary)' }}>&ldquo;{activity.target}&rdquo;</span>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {activity.timestamp}
                       </div>
                     </div>
-                  ))}
-                </div>
-              );
-            })()}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

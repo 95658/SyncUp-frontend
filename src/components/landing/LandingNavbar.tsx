@@ -50,6 +50,7 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
             alignItems: 'center',
             gap: '12px',
             textDecoration: 'none',
+            flexShrink: 0,
           }}
           className="brand-logo-group"
         >
@@ -108,7 +109,10 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
           style={{
             display: 'none',
             alignItems: 'center',
-            gap: '32px',
+            justifyContent: 'center',
+            gap: 'clamp(14px, 1.8vw, 26px)',
+            margin: '0 16px',
+            flexShrink: 0,
           }}
           className="desktop-nav"
         >
@@ -130,7 +134,7 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
         </nav>
 
         {/* Controls: Lang + Theme + Login CTA */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
           {/* Language Toggle */}
           <button
             onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
@@ -325,12 +329,15 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
           transform: scale(1.06) rotate(-3deg);
         }
         .nav-link {
-          font-size: 14.5px;
+          font-size: 14px;
           font-weight: 600;
           color: var(--text-secondary);
           transition: color 0.15s ease;
           position: relative;
           text-decoration: none;
+          white-space: nowrap !important;
+          flex-shrink: 0;
+          padding: 6px 2px;
         }
         .nav-link:hover {
           color: var(--primary);
@@ -349,7 +356,7 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
         .nav-link:hover::after {
           width: 100%;
         }
-        @media (min-width: 860px) {
+        @media (min-width: 900px) {
           .desktop-nav {
             display: flex !important;
           }

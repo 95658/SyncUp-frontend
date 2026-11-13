@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/syntiqtech/public_html/syncup/
+    - /bin/cp -R out/* $DEPLOYPATH

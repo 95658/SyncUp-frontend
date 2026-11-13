@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useAuthStore } from '@/store/authStore';
 import { showSnack } from '@/store/snackbarStore';
@@ -54,44 +54,28 @@ export const FilesView: React.FC = () => {
     currentUser?.jobTitle?.toLowerCase().includes('leader') ||
     currentUser?.jobTitle?.toLowerCase().includes('manager');
 
-  const [fileList, setFileList] = useState<OrgFileItem[]>([
-    {
-      id: 'f-1',
-      name: 'Libro_Q4_Product_Roadmap_2026.pdf',
-      size: '2.4 MB',
-      type: 'pdf',
-      uploadedBy: 'Ahmed Abdelfatah',
-      uploadedAt: 'Yesterday at 4:30 PM',
-      projectName: 'Core SaaS Infrastructure',
-    },
-    {
-      id: 'f-2',
-      name: 'System_Architecture_Diagram_V2.png',
-      size: '4.8 MB',
-      type: 'image',
-      uploadedBy: 'Ziad Ghabour',
-      uploadedAt: '2 days ago',
-      projectName: 'Main Project',
-    },
-    {
-      id: 'f-3',
-      name: 'Client_Financial_Forecast_Q1.xlsx',
-      size: '1.1 MB',
-      type: 'sheet',
-      uploadedBy: 'Financial Team',
-      uploadedAt: 'Oct 22, 2026',
-      projectName: 'Finance & ERP',
-    },
-    {
-      id: 'f-4',
-      name: 'API_Security_Audit_Report.docx',
-      size: '850 KB',
-      type: 'doc',
-      uploadedBy: 'QA Lead',
-      uploadedAt: 'Oct 19, 2026',
-      projectName: 'Security Compliance',
-    },
-  ]);
+  const [fileList, setFileList] = useState<OrgFileItem[]>(() => {
+    if (typeof window !== 'undefined' && activeOrgId) {
+      try {
+        const saved = localStorage.getItem(`syncup_files_${activeOrgId}`);
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && activeOrgId) {
+      try {
+        const saved = localStorage.getItem(`syncup_files_${activeOrgId}`);
+        setFileList(saved ? JSON.parse(saved) : []);
+      } catch {
+        setFileList([]);
+      }
+    } else {
+      setFileList([]);
+    }
+  }, [activeOrgId]);
 
   const handleUploadFile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +101,13 @@ export const FilesView: React.FC = () => {
       projectName: projects[0]?.name || 'General Org Files',
     };
 
-    setFileList([newFile, ...fileList]);
+    const updated = [newFile, ...fileList];
+    setFileList(updated);
+    if (typeof window !== 'undefined' && activeOrgId) {
+      try {
+        localStorage.setItem(`syncup_files_${activeOrgId}`, JSON.stringify(updated));
+      } catch {}
+    }
     setNewFileName('');
     setIsUploadModalOpen(false);
     showSnack(isAr ? 'تم رفع الملف بنجاح' : 'File uploaded successfully', 'success');
@@ -133,7 +123,13 @@ export const FilesView: React.FC = () => {
       );
       return;
     }
-    setFileList(fileList.filter((f) => f.id !== id));
+    const updated = fileList.filter((f) => f.id !== id);
+    setFileList(updated);
+    if (typeof window !== 'undefined' && activeOrgId) {
+      try {
+        localStorage.setItem(`syncup_files_${activeOrgId}`, JSON.stringify(updated));
+      } catch {}
+    }
     showSnack(isAr ? 'تم حذف الملف' : 'File removed', 'info');
   };
 
@@ -250,108 +246,173 @@ export const FilesView: React.FC = () => {
         </div>
       </div>
 
-      {/* Files Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-        {filteredFiles.map((file) => (
+      {/* Files Grid or Clean Empty State */}
+      {filteredFiles.length === 0 ? (
+        <div
+          style={{
+            padding: '54px 24px',
+            textAlign: 'center',
+            background: 'var(--bg-card)',
+            borderRadius: '16px',
+            border: '1px dashed var(--border-light)',
+          }}
+        >
           <div
-            key={file.id}
-            className="card"
             style={{
-              padding: '18px',
+              width: '56px',
+              height: '56px',
+              borderRadius: '16px',
+              background: 'var(--bg-app)',
+              border: '1px solid var(--border-light)',
               display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              gap: '14px',
-              transition: 'transform var(--transition-fast), box-shadow var(--transition-fast)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = 'var(--shadow-card)';
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 14px auto',
+              color: 'var(--text-muted)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-              <div
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '10px',
-                  background: 'var(--bg-app)',
-                  border: '1px solid var(--border-light)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                {getFileIcon(file.type)}
-              </div>
-
-              <div style={{ flex: 1, overflow: 'hidden' }}>
-                <div
-                  style={{
-                    fontSize: '13.5px',
-                    fontWeight: 700,
-                    color: 'var(--text-main)',
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                  }}
-                  title={file.name}
-                >
-                  {file.name}
-                </div>
-                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  {file.size} • {file.type.toUpperCase()}
-                </div>
-              </div>
-            </div>
-
-            <div
+            <FolderOpen size={28} />
+          </div>
+          <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)' }}>
+            {isAr ? 'لا توجد مستندات أو ملفات بعد' : 'No Files or Assets Uploaded Yet'}
+          </div>
+          <p
+            style={{
+              fontSize: '13px',
+              color: 'var(--text-secondary)',
+              marginTop: '6px',
+              marginBottom: '18px',
+              maxWidth: '440px',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+            }}
+          >
+            {isAr
+              ? 'يمكن لمالك المؤسسة ومدير المشروع وقائد الفريق رفع ومشاركة ملفات المؤسسة والمخططات هنا.'
+              : 'Authorized team leaders, project managers, and organization owners can upload shared documents, specs, and architectural diagrams here.'}
+          </p>
+          {isPrivileged && (
+            <button
+              type="button"
+              onClick={() => setIsUploadModalOpen(true)}
+              className="btn btn-primary"
               style={{
-                fontSize: '12px',
-                color: 'var(--text-secondary)',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingTop: '10px',
-                borderTop: '1px solid var(--border-subtle)',
+                gap: '8px',
+                fontSize: '13px',
+                padding: '9px 18px',
+                borderRadius: '10px',
               }}
             >
-              <div>
-                <div style={{ fontWeight: 600 }}>{file.uploadedBy}</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{file.uploadedAt}</div>
+              <Plus size={16} />
+              <span>{isAr ? 'رفع أول ملف للمؤسسة' : 'Upload First File'}</span>
+            </button>
+          )}
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+          {filteredFiles.map((file) => (
+            <div
+              key={file.id}
+              className="card"
+              style={{
+                padding: '18px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: '14px',
+                transition: 'transform var(--transition-fast), box-shadow var(--transition-fast)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = 'var(--shadow-card)';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-app)',
+                    border: '1px solid var(--border-light)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  {getFileIcon(file.type)}
+                </div>
+
+                <div style={{ flex: 1, overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      fontSize: '13.5px',
+                      fontWeight: 700,
+                      color: 'var(--text-main)',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                    }}
+                    title={file.name}
+                  >
+                    {file.name}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {file.size} • {file.type.toUpperCase()}
+                  </div>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <button
-                  type="button"
-                  className="btn-ghost"
-                  style={{ padding: '6px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
-                  title="Download File"
-                  onClick={() => showSnack(isAr ? 'جارِ التحميل...' : 'Downloading file...', 'info')}
-                >
-                  <Download size={15} color="var(--primary)" />
-                </button>
-                {isPrivileged && (
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingTop: '10px',
+                  borderTop: '1px solid var(--border-subtle)',
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 600 }}>{file.uploadedBy}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{file.uploadedAt}</div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '6px' }}>
                   <button
                     type="button"
                     className="btn-ghost"
                     style={{ padding: '6px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
-                    title="Delete File"
-                    onClick={() => handleDeleteFile(file.id)}
+                    title="Download File"
+                    onClick={() => showSnack(isAr ? 'جارِ التحميل...' : 'Downloading file...', 'info')}
                   >
-                    <Trash2 size={15} color="#ef4444" />
+                    <Download size={15} color="var(--primary)" />
                   </button>
-                )}
+                  {isPrivileged && (
+                    <button
+                      type="button"
+                      className="btn-ghost"
+                      style={{ padding: '6px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+                      title="Delete File"
+                      onClick={() => handleDeleteFile(file.id)}
+                    >
+                      <Trash2 size={15} color="#ef4444" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Upload File Modal */}
       {isUploadModalOpen && (
