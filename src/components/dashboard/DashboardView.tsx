@@ -104,15 +104,26 @@ export const DashboardView: React.FC = () => {
           <h1 style={{
             fontSize: '30px',
             fontWeight: 800,
-            letterSpacing: '-0.8px',
+            letterSpacing: isAr ? '0' : '-0.8px',
             color: 'var(--text-main)',
             lineHeight: 1.2,
             marginBottom: '6px',
           }}>
-            Good morning, {currentUser?.name ? currentUser.name.split(' ')[0] : 'Team'} 👋
+            {(() => {
+              const hour = new Date().getHours();
+              const name = currentUser?.name ? currentUser.name.split(' ')[0] : (isAr ? 'الفريق' : 'Team');
+              if (isAr) {
+                const greeting = hour < 12 ? 'صباح الخير' : 'مساء الخير';
+                return `${greeting}، ${name} 👋`;
+              }
+              const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+              return `${greeting}, ${name} 👋`;
+            })()}
           </h1>
           <p style={{ fontSize: '14.5px', color: '#64748b', fontWeight: 500 }}>
-            Here is your daily pulse, team progress, and upcoming deliverables in {currentOrg.name}.
+            {isAr
+              ? `إليك ملخص الأداء اليومي وسرعة إنجاز المهام في مؤسسة ${currentOrg.name}.`
+              : `Here is your daily pulse, team progress, and upcoming deliverables in ${currentOrg.name}.`}
           </p>
         </div>
 

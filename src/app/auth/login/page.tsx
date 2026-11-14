@@ -94,230 +94,8 @@ export default function LoginPage() {
         return;
       }
     } catch (err: any) {
-      console.warn('Backend login attempt failed, verifying credentials against organizations store:', err.message);
-
-      // Standalone mode password verification
-      const isAhmed = loginEmail.toLowerCase().trim() === 'aabdelfatah732@gmail.com';
-      const isZiad = loginEmail.toLowerCase().trim() === 'zghabour@gmail.com';
-
-      if (isAhmed && loginPassword === 'SyncUp#Ahmed2026!Secured') {
-        const dummyToken = 'mock-jwt-token-ahmed-' + Date.now();
-        loginUser(
-          {
-            id: 'platform-owner-ahmed',
-            name: 'Ahmed Abdelfatah',
-            email: 'aabdelfatah732@gmail.com',
-            isPlatformOwner: true,
-            status: 'ACTIVE',
-            jobTitle: 'Founder & Platform Owner',
-          },
-          'PLATFORM_OWNER',
-          dummyToken
-        );
-        setCurrentView('super-admin');
-        router.replace('/workspace');
-        return;
-      } else if (isZiad && loginPassword === 'Libro#Ziad2026!Secured') {
-        const dummyToken = 'mock-jwt-token-ziad-' + Date.now();
-        loginUser(
-          {
-            id: 'cmvpjt0pg000078qgscfe8s10',
-            name: 'Ziad Ghabour',
-            email: 'zghabour@gmail.com',
-            isPlatformOwner: false,
-            status: 'ACTIVE',
-            jobTitle: 'Organization Admin',
-          },
-          'ORG_ADMIN',
-          dummyToken
-        );
-        setCurrentView('dashboard');
-        const currentOrgs = useWorkspaceStore.getState().organizations;
-        if (currentOrgs.length > 0) {
-          useWorkspaceStore.getState().setActiveOrgId(currentOrgs[0].id);
-        }
-        router.replace('/workspace');
-        return;
-      } else if (isAhmed && loginPassword !== 'SyncUp#Ahmed2026!Secured') {
-        setError('Invalid email or password');
-        setLoading(false);
-        return;
-      } else if (isZiad && loginPassword !== 'Libro#Ziad2026!Secured') {
-        setError('Invalid email or password');
-        setLoading(false);
-        return;
-      } else {
-        // Check provisioned organizations (from workspaceStore & localStorage)
-        let allOrgs = useWorkspaceStore.getState().organizations;
-        if ((!allOrgs || allOrgs.length === 0) && typeof window !== 'undefined') {
-          try {
-            const raw = localStorage.getItem('syncup_orgs');
-            if (raw) allOrgs = JSON.parse(raw);
-          } catch {}
-        }
-
-        const cleanEmail = loginEmail.toLowerCase().trim();
-        const matchedOrg = (allOrgs || []).find(
-          (o) => o.adminEmail && o.adminEmail.toLowerCase().trim() === cleanEmail
-        );
-
-        if (matchedOrg) {
-          if (matchedOrg.status === 'SUSPENDED') {
-            setError(
-              'This organization has been suspended by the platform administrator. Access is restricted.'
-            );
-            setLoading(false);
-            return;
-          }
-          const expectedPass = matchedOrg.adminPassword || `${matchedOrg.name.replace(/\s+/g, '')}#Admin2026!`;
-          const altPass1 = `${matchedOrg.name}#Admin2026!`;
-          const altPass2 = 'Nasa#Admin2026!';
-          const altPass3 = 'SyncUp#Admin2026!';
-
-          if (
-            loginPassword === expectedPass ||
-            loginPassword === altPass1 ||
-            loginPassword === altPass2 ||
-            loginPassword === altPass3
-          ) {
-            const dummyToken = 'mock-jwt-token-orgadmin-' + Date.now();
-            loginUser(
-              {
-                id: 'admin-' + matchedOrg.id,
-                name: matchedOrg.adminName || 'Organization Admin',
-                email: matchedOrg.adminEmail,
-                isPlatformOwner: false,
-                status: 'ACTIVE',
-                jobTitle: 'Organization Admin',
-              },
-              'ORG_ADMIN',
-              dummyToken
-            );
-            useWorkspaceStore.getState().setActiveOrgId(matchedOrg.id);
-            useWorkspaceStore.getState().setCurrentView('dashboard');
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('syncup_active_org_id', matchedOrg.id);
-              localStorage.setItem('syncup_current_view', 'dashboard');
-            }
-            router.replace('/workspace');
-            return;
-          } else {
-            setError('Invalid email or password');
-            setLoading(false);
-            return;
-          }
-        }
-
-        // Check invited / created member credentials
-        if (typeof window !== 'undefined') {
-          try {
-            const rawCreds = localStorage.getItem('syncup_member_credentials');
-            const credsMap = rawCreds ? JSON.parse(rawCreds) : {};
-            const memberCred = credsMap[cleanEmail];
-
-            if (memberCred) {
-              if (loginPassword !== memberCred.password) {
-                setError(
-                  language === 'ar'
-                    ? 'كلمة المرور غير صحيحة لحساب هذا العضو'
-                    : 'Invalid password for this member account'
-                );
-                setLoading(false);
-                return;
-              }
-
-              const role = memberCred.role === 'ADMIN' ? 'ORG_ADMIN' : 'ORG_MEMBER';
-              const dummyToken = 'mock-jwt-token-member-' + Date.now();
-              loginUser(
-                {
-                  id: 'member-' + cleanEmail,
-                  name: memberCred.name || cleanEmail.split('@')[0],
-                  email: cleanEmail,
-                  isPlatformOwner: false,
-                  status: 'ACTIVE',
-                  jobTitle: memberCred.jobTitle || 'Team Member',
-                },
-                role,
-                dummyToken
-              );
-
-              if (memberCred.orgId) {
-                useWorkspaceStore.getState().setActiveOrgId(memberCred.orgId);
-                localStorage.setItem('syncup_active_org_id', memberCred.orgId);
-              }
-              useWorkspaceStore.getState().setCurrentView('dashboard');
-              localStorage.setItem('syncup_current_view', 'dashboard');
-              router.replace('/workspace');
-              return;
-            }
-
-            // Also check organization members lists in localStorage
-            for (const org of (allOrgs || [])) {
-              const rawMems = localStorage.getItem(`syncup_members_${org.id}`);
-              if (rawMems) {
-                const orgMems = JSON.parse(rawMems);
-                const found = orgMems.find((m: any) => m.user?.email?.toLowerCase().trim() === cleanEmail);
-                if (found) {
-                  if (found.password && loginPassword !== found.password) {
-                    setError(
-                      language === 'ar'
-                        ? 'كلمة المرور غير صحيحة لحساب هذا العضو'
-                        : 'Invalid password for this member account'
-                    );
-                    setLoading(false);
-                    return;
-                  }
-                  const role = found.role === 'ADMIN' ? 'ORG_ADMIN' : 'ORG_MEMBER';
-                  const dummyToken = 'mock-jwt-token-member-' + Date.now();
-                  loginUser(
-                    {
-                      id: found.userId || 'mem-' + cleanEmail,
-                      name: found.user?.name || cleanEmail.split('@')[0],
-                      email: cleanEmail,
-                      isPlatformOwner: false,
-                      status: 'ACTIVE',
-                      jobTitle: found.user?.jobTitle || 'Team Member',
-                    },
-                    role,
-                    dummyToken
-                  );
-                  useWorkspaceStore.getState().setActiveOrgId(org.id);
-                  localStorage.setItem('syncup_active_org_id', org.id);
-                  useWorkspaceStore.getState().setCurrentView('dashboard');
-                  localStorage.setItem('syncup_current_view', 'dashboard');
-                  router.replace('/workspace');
-                  return;
-                }
-              }
-            }
-          } catch (e) {
-            console.warn('Member auth check error:', e);
-          }
-        }
-
-        if (loginEmail.includes('@') && loginPassword.length >= 6) {
-          const dummyToken = 'mock-jwt-token-custom-' + Date.now();
-          loginUser(
-            {
-              id: 'user-' + Date.now(),
-              name: loginEmail.split('@')[0],
-              email: loginEmail,
-              isPlatformOwner: false,
-              status: 'ACTIVE',
-              jobTitle: 'Organization Admin',
-            },
-            'ORG_ADMIN',
-            dummyToken
-          );
-          setCurrentView('dashboard');
-          router.replace('/workspace');
-          return;
-        } else {
-          setError('Invalid email or password');
-          setLoading(false);
-          return;
-        }
-      }
+      const errMsg = err?.message || 'Invalid email or password';
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
@@ -325,7 +103,21 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleLogin(email, password);
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      setError(language === 'ar' ? 'يرجى إدخال البريد الإلكتروني للعمل' : 'Please enter your work email');
+      return;
+    }
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(cleanEmail) || cleanEmail.length > 254) {
+      setError(language === 'ar' ? 'صيغة البريد الإلكتروني غير صحيحة' : 'Invalid email address format');
+      return;
+    }
+    if (!password) {
+      setError(language === 'ar' ? 'يرجى إدخال كلمة المرور' : 'Please enter your password');
+      return;
+    }
+    handleLogin(cleanEmail, password);
   };
 
   return (
@@ -505,7 +297,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: isDark ? '#cbd5e1' : '#1e293b', marginBottom: '6px' }}>
               Work Email
@@ -515,6 +307,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 required
+                maxLength={254}
                 placeholder="name@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -561,6 +354,7 @@ export default function LoginPage() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
+                maxLength={128}
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

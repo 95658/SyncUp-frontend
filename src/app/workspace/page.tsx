@@ -35,6 +35,18 @@ export default function WorkspacePage() {
   const { theme, language } = useUIStore();
   const [mounted, setMounted] = useState(false);
 
+  // Multi-tab logout sync & auth verification (TC-AUTH-019)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'syncup_token' && !e.newValue) {
+        useAuthStore.getState().logoutUser();
+        router.replace('/auth/login');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [router]);
+
   // Requirement 7, 3 & 1: Always verify auth state, prevent forward navigation from login, ensure correct landing role
   useEffect(() => {
     setMounted(true);

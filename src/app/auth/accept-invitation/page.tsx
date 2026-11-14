@@ -10,29 +10,56 @@ export default function AcceptInvitationPage() {
   const router = useRouter();
   const { theme } = useUIStore();
   const isDark = theme === 'dark';
-  const [token, setToken] = useState('demo-token-123');
+  const [token, setToken] = useState('');
+  const [orgName, setOrgName] = useState('SyncUp Organization');
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const urlToken = urlParams.get('token');
+      const urlOrg = urlParams.get('org') || urlParams.get('orgName');
       if (urlToken) setToken(urlToken);
+      if (urlOrg) setOrgName(decodeURIComponent(urlOrg));
     }
   }, []);
 
   const handleAccept = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    const cleanName = fullName.trim();
+    if (!cleanName) {
+      setError('Please enter your full name');
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Must be at least 8 characters with a mix of letters and numbers.');
+      return;
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      setError('Password must contain at least one uppercase letter.');
+      return;
+    }
+
+    if (!/[0-9]/.test(password)) {
+      setError('Password must contain at least one number.');
+      return;
+    }
+
     setLoading(true);
 
     setTimeout(() => {
       setLoading(false);
       setSuccess(true);
       setTimeout(() => {
-        router.push('/workspace');
+        router.push('/auth/login');
       }, 1200);
     }, 800);
   };
@@ -102,7 +129,21 @@ export default function AcceptInvitationPage() {
             </p>
           </div>
         ) : (
-          <form onSubmit={handleAccept} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <form onSubmit={handleAccept} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            {error && (
+              <div style={{
+                padding: '10px 14px',
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: 'var(--radius-md)',
+                color: '#b91c1c',
+                fontSize: '13px',
+                fontWeight: 600,
+              }}>
+                {error}
+              </div>
+            )}
+
             {/* Organization Tag */}
             <div style={{
               display: 'flex',
@@ -119,7 +160,7 @@ export default function AcceptInvitationPage() {
                   Workspace Invitation
                 </div>
                 <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>
-                  Dipdux Organization
+                  {orgName}
                 </div>
               </div>
             </div>
