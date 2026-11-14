@@ -44,7 +44,7 @@ export default function LandingPage() {
         overflowX: 'hidden',
       }}
     >
-      {/* Animated subtle ambient light beams */}
+      {/* Animated subtle ambient light beams in Burgundy tones */}
       <div
         style={{
           position: 'fixed',
@@ -55,7 +55,7 @@ export default function LandingPage() {
           maxWidth: '650px',
           maxHeight: '650px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(37,99,235,0.14) 0%, rgba(79,70,229,0.06) 45%, rgba(0,0,0,0) 70%)',
+          background: 'radial-gradient(circle, rgba(139,0,33,0.18) 0%, rgba(190,18,60,0.08) 45%, rgba(0,0,0,0) 70%)',
           filter: 'blur(80px)',
           pointerEvents: 'none',
           zIndex: 0,
@@ -72,7 +72,7 @@ export default function LandingPage() {
           maxWidth: '500px',
           maxHeight: '500px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(139,92,246,0.12) 0%, rgba(37,99,235,0.04) 50%, rgba(0,0,0,0) 70%)',
+          background: 'radial-gradient(circle, rgba(225,29,72,0.14) 0%, rgba(139,0,33,0.06) 50%, rgba(0,0,0,0) 70%)',
           filter: 'blur(90px)',
           pointerEvents: 'none',
           zIndex: 0,

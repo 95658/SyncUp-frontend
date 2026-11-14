@@ -168,18 +168,18 @@ export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
                   height: '36px',
                   borderRadius: '10px',
                   background: theme === 'dark'
-                    ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
-                    : 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)',
+                    ? 'linear-gradient(135deg, #170E13 0%, #2A1420 100%)'
+                    : 'linear-gradient(135deg, #ffffff 0%, #fff1f2 100%)',
                   border: theme === 'dark'
-                    ? '1px solid rgba(56, 189, 248, 0.25)'
-                    : '1px solid rgba(203, 213, 225, 0.9)',
+                    ? '1px solid rgba(225, 29, 72, 0.35)'
+                    : '1px solid rgba(254, 205, 211, 0.9)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   padding: '5px',
                   boxShadow: theme === 'dark'
-                    ? '0 4px 12px rgba(37, 99, 235, 0.2)'
-                    : '0 2px 8px rgba(15, 23, 42, 0.06)',
+                    ? '0 4px 12px rgba(139, 0, 33, 0.3)'
+                    : '0 2px 8px rgba(139, 0, 33, 0.06)',
                   transition: 'all 0.25s ease',
                 }}
               >

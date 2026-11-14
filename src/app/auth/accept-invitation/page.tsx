@@ -54,17 +54,17 @@ export default function AcceptInvitationPage() {
           height: '56px',
           borderRadius: '16px',
           background: isDark
-            ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
-            : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+            ? 'linear-gradient(135deg, #170E13 0%, #2A1420 100%)'
+            : 'linear-gradient(135deg, #ffffff 0%, #fff1f2 100%)',
           border: isDark
-            ? '1.5px solid rgba(56, 189, 248, 0.25)'
-            : '1.5px solid rgba(226, 232, 240, 0.95)',
+            ? '1.5px solid rgba(225, 29, 72, 0.35)'
+            : '1.5px solid rgba(254, 205, 211, 0.95)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           boxShadow: isDark
-            ? '0 8px 24px rgba(37, 99, 235, 0.35)'
-            : '0 8px 20px -4px rgba(37, 99, 235, 0.15), 0 4px 10px rgba(15, 23, 42, 0.05)',
+            ? '0 8px 24px rgba(139, 0, 33, 0.45)'
+            : '0 8px 20px -4px rgba(139, 0, 33, 0.2), 0 4px 10px rgba(139, 0, 33, 0.05)',
           margin: '0 auto 14px auto',
           padding: '8px',
         }}>

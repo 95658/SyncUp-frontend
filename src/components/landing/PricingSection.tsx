@@ -10,102 +10,122 @@ interface PricingTier {
   nameAr: string;
   billingPeriodEn: string;
   billingPeriodAr: string;
-  price: number;
-  perMonth: number;
+  priceDisplayEn: string;
+  priceDisplayAr: string;
+  perMonthDisplayEn: string;
+  perMonthDisplayAr: string;
   popular?: boolean;
   savingsEn?: string;
   savingsAr?: string;
   featuresEn: string[];
   featuresAr: string[];
+  buttonTextEn: string;
+  buttonTextAr: string;
 }
 
 export const PricingSection: React.FC<{ onRequestAccess: () => void }> = ({ onRequestAccess }) => {
   const { language } = useUIStore();
   const isAr = language === 'ar';
-  const [selectedPlan, setSelectedPlan] = useState<string>('annual');
+  const [selectedPlan, setSelectedPlan] = useState<string>('trial');
 
   const tiers: PricingTier[] = [
     {
-      id: 'monthly',
-      nameEn: 'Monthly Pass',
-      nameAr: 'الاشتراك الشهري',
-      billingPeriodEn: 'per month',
-      billingPeriodAr: 'شهرياً',
-      price: 49,
-      perMonth: 49,
+      id: 'trial',
+      nameEn: '14-Day Free Trial',
+      nameAr: 'تجربة مجانية (14 يوماً)',
+      priceDisplayEn: '$0',
+      priceDisplayAr: '$0',
+      perMonthDisplayEn: 'Free for 14 Days',
+      perMonthDisplayAr: 'مجاناً لمدة 14 يوماً',
+      billingPeriodEn: 'no credit card required • instant access',
+      billingPeriodAr: 'بدون بطاقة بنكية • تفعيل فوري',
+      savingsEn: '100% Free',
+      savingsAr: 'مجاناً 100%',
       featuresEn: [
         'Full Enterprise Workspace access',
         'Unlimited sprints, tasks & poker planning',
         'Encrypted team channels & direct messages',
         'Unlimited client project management',
         'Standard cloud file storage',
+        'Official email invite token activation',
       ],
       featuresAr: [
-        'وصول كامل لبيئة العمل المؤسسية',
-        'عدد غير محدود من السبرنتات والتخطيط',
-        'قنوات دردشة مشفرة ورسائل مباشرة',
+        'وصول كامل وشامل لبيئة العمل المؤسسية',
+        'عدد غير محدود من السبرنتات والمهام والتخطيط',
+        'قنوات دردشة مشفرة ومحادثات مباشرة',
         'إدارة مشاريع العملاء بلا حدود',
-        'مساحة تخزين سحابية قياسية',
+        'مساحة تخزين سحابية قياسية للملفات',
+        'تفعيل فوري عبر رابط دعوة رسمي للمؤسسة',
       ],
+      buttonTextEn: 'Start 14-Day Free Trial',
+      buttonTextAr: 'ابدأ تجربتك المجانية',
     },
     {
-      id: 'quarterly',
-      nameEn: '3-Month Sprint',
-      nameAr: 'باقة الـ 3 شهور',
-      billingPeriodEn: 'billed every 3 months',
-      billingPeriodAr: 'تُدفع كل 3 شهور ($129)',
-      price: 129,
-      perMonth: 43,
-      savingsEn: 'Save 12%',
-      savingsAr: 'وفر 12%',
+      id: 'monthly',
+      nameEn: 'Monthly Pass',
+      nameAr: 'الاشتراك الشهري',
+      priceDisplayEn: '$49',
+      priceDisplayAr: '$49',
+      perMonthDisplayEn: '/ month',
+      perMonthDisplayAr: '/ شهر',
+      billingPeriodEn: 'billed monthly • cancel anytime',
+      billingPeriodAr: 'تُدفع شهرياً • إلغاء في أي وقت',
       featuresEn: [
-        'Everything in Monthly Pass',
-        'Priority support response within 4 hours',
-        'Custom team roles & project permissions',
-        'Sprint performance & velocity analytics',
+        'Everything in Free Trial',
+        'Uninterrupted continuous workspace',
+        'Standard cloud file deliverables storage',
+        'Priority email & ticket support',
         'Multi-team workspace isolation',
       ],
       featuresAr: [
-        'كل ما في الباقة الشهرية',
-        'دعم فني ذو أولوية خلال 4 ساعات',
-        'أدوار مخصصة وصلاحيات مرنة للفرق',
-        'تحليلات سرعة الإنجاز والأداء',
+        'كل ما يتضمنه الحساب التجريبي',
+        'استمرارية الخدمة والبيانات دون توقف',
+        'تخزين سحابي قياسي للملفات والتسليمات',
+        'دعم فني ذو أولوية عبر البريد والتذاكر',
         'عزل تام للمشاريع بين الفرق المختلفة',
       ],
+      buttonTextEn: 'Choose Monthly Pass',
+      buttonTextAr: 'اختر الاشتراك الشهري',
     },
     {
       id: 'half_year',
       nameEn: '6-Month Growth',
       nameAr: 'باقة الـ 6 شهور',
-      billingPeriodEn: 'billed every 6 months',
-      billingPeriodAr: 'تُدفع كل 6 شهور ($239)',
-      price: 239,
-      perMonth: 39,
+      priceDisplayEn: '$39',
+      priceDisplayAr: '$39',
+      perMonthDisplayEn: '/ mo ($239)',
+      perMonthDisplayAr: '/ شهر ($239)',
+      billingPeriodEn: 'billed every 6 months • save $60',
+      billingPeriodAr: 'تُدفع كل 6 شهور • توفير $60',
       savingsEn: 'Save 20%',
       savingsAr: 'وفر 20%',
       featuresEn: [
-        'Everything in 3-Month Plan',
+        'Everything in Monthly Pass',
         'Advanced audit logs & compliance trail',
         'Automated CI/CD webhook integrations',
         'Higher capacity file deliverables',
-        'Dedicated onboarding engineer support',
+        'Dedicated onboarding support',
       ],
       featuresAr: [
-        'كل ما في باقة الـ 3 شهور',
+        'كل مميزات الاشتراك الشهري',
         'سجلات تدقيق أمني مفصلة (Audit Logs)',
         'تكاملات Webhook للـ CI/CD والربط الآلي',
         'سعة مضاعفة لتسليمات الملفات والتصميمات',
         'دعم مهندس مخصص أثناء الإطلاق والإعداد',
       ],
+      buttonTextEn: 'Choose 6-Month Plan',
+      buttonTextAr: 'اختر باقة الـ 6 شهور',
     },
     {
       id: 'annual',
       nameEn: 'Annual Enterprise',
       nameAr: 'الاشتراك السنوي الشامل',
-      billingPeriodEn: 'billed annually ($399)',
-      billingPeriodAr: 'تُدفع سنوياً ($399)',
-      price: 399,
-      perMonth: 33,
+      priceDisplayEn: '$33',
+      priceDisplayAr: '$33',
+      perMonthDisplayEn: '/ mo ($399)',
+      perMonthDisplayAr: '/ شهر ($399)',
+      billingPeriodEn: 'billed annually • 2 months completely free',
+      billingPeriodAr: 'تُدفع سنوياً • شهران مجاناً بالكامل',
       popular: true,
       savingsEn: 'Save 32% (Best Value)',
       savingsAr: 'وفر 32% (القيمة الأفضل)',
@@ -117,12 +137,14 @@ export const PricingSection: React.FC<{ onRequestAccess: () => void }> = ({ onRe
         'VIP direct Slack/WhatsApp bridge with core team',
       ],
       featuresAr: [
-        'كل مميزات وقدرات المنصة بلا حدود',
+        'كل مميزات وقدرات المنصة بلا أي قيود',
         'شهران مجاناً بالكامل (توفير $99)',
         'اتفاقية مستوى الخدمة 99.99% SLA',
         'إمكانية ربط نطاق مخصص للهوية المؤسسية',
         'قناة تواصل VIP مباشرة مع الفريق الهندسي',
       ],
+      buttonTextEn: 'Choose Annual Plan',
+      buttonTextAr: 'اختر الاشتراك السنوي',
     },
   ];
 
@@ -130,191 +152,140 @@ export const PricingSection: React.FC<{ onRequestAccess: () => void }> = ({ onRe
     <section
       id="pricing"
       style={{
-        padding: '100px 24px',
-        maxWidth: '1280px',
+        padding: '90px 24px',
+        maxWidth: '1320px',
         margin: '0 auto',
         width: '100%',
         position: 'relative',
       }}
     >
-      {/* Trial Banner Callout */}
-      <div
-        style={{
-          background: 'linear-gradient(135deg, rgba(139, 0, 33, 0.08) 0%, rgba(190, 18, 60, 0.04) 100%)',
-          border: '1.5px solid var(--primary-border)',
-          borderRadius: '20px',
-          padding: '24px 32px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '20px',
-          marginBottom: '54px',
-          boxShadow: 'var(--shadow-sm)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-          <div
-            style={{
-              width: '52px',
-              height: '52px',
-              borderRadius: '14px',
-              background: 'var(--primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              boxShadow: 'var(--primary-glow)',
-              flexShrink: 0,
-            }}
-          >
-            <Clock size={28} />
-          </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  background: '#ffe4e6',
-                  color: '#9f1239',
-                  padding: '3px 10px',
-                  borderRadius: '999px',
-                }}
-              >
-                {isAr ? 'تجربة مجانية شاملة' : '14-Day Free Trial'}
-              </span>
-              <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
-                {isAr ? 'بدون أي التزام أو بطاقة بنكية' : 'No credit card required'}
-              </span>
-            </div>
-            <h3 style={{ fontSize: '19px', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
-              {isAr
-                ? 'جرب منصة SyncUp بالكامل مجاناً لمدة 14 يوماً مع فريقك'
-                : 'Experience the full SyncUp workspace free for 14 days with your entire engineering team'}
-            </h3>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '2px', margin: 0 }}>
-              {isAr
-                ? 'ابدأ فوراً واستمتع بكافة الخصائص الاحترافية بدون أي قيود، واختر خطة الاشتراك المناسبة لك لاحقاً.'
-                : 'Every new organization starts with 14 days of unrestricted enterprise access before selecting a plan.'}
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={onRequestAccess}
-          className="btn btn-primary"
-          style={{
-            padding: '12px 24px',
-            fontSize: '14.5px',
-            fontWeight: 800,
-            borderRadius: '12px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <span>{isAr ? 'ابدأ تجربتك المجانية (14 يوماً)' : 'Start 14-Day Free Trial'}</span>
-          <ArrowRight size={16} />
-        </button>
-      </div>
-
       {/* Section Header */}
-      <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 60px auto' }}>
+      <div style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 50px auto' }}>
         <div
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '6px 14px',
+            padding: '6px 16px',
             background: 'var(--primary-light)',
             border: '1px solid var(--primary-border)',
             borderRadius: '999px',
             color: 'var(--primary)',
-            fontSize: '12.5px',
-            fontWeight: 700,
-            marginBottom: '16px',
+            fontSize: '13px',
+            fontWeight: 800,
+            marginBottom: '18px',
           }}
         >
-          <Sparkles size={14} />
-          <span>{isAr ? 'خطط أسعار واضحة ومرنة' : 'Simple, Transparent Pricing'}</span>
+          <Sparkles size={15} />
+          <span>{isAr ? 'تجربة مجانية شاملة + خطط مرنة' : '14-Day Free Trial & Transparent Plans'}</span>
         </div>
-        <h2 style={{ fontSize: '38px', fontWeight: 900, color: 'var(--text-main)', letterSpacing: '-0.8px', lineHeight: 1.15 }}>
+        <h2 style={{ fontSize: ' clamp(28px, 4vw, 42px)', fontWeight: 900, color: 'var(--text-main)', letterSpacing: isAr ? '0' : '-1px', lineHeight: 1.18 }}>
           {isAr
-            ? 'خطط مرنة تناسب وتيرة نمو فريقك الهندسي'
-            : 'Plans built for teams of every velocity'}
+            ? 'ابدأ تجربة مجانية 14 يوماً مع فريقك بدون مخاطرة'
+            : 'Start with 14 days free. Scale when you are ready.'}
         </h2>
-        <p style={{ fontSize: '16px', color: 'var(--text-secondary)', marginTop: '12px', lineHeight: 1.6 }}>
+        <p style={{ fontSize: '16px', color: 'var(--text-secondary)', marginTop: '14px', lineHeight: 1.6 }}>
           {isAr
-            ? 'لا توجد أي رسوم خفية لكل مستخدم. تدفع المؤسسة اشتراكاً ثابتاً وتستمتع بكافة الأدوات والقنوات والمهام.'
-            : 'Flat transparent billing per tenant organization. No per-seat extortion fees.'}
+            ? 'تمتع بكافة الخصائص المؤسسية مجاناً لأول أسبوعين. بدون الحاجة لإدخال أي بطاقة دفع، ويمكنك اختيار الباقة التي تناسبك بعد التجربة.'
+            : 'Full enterprise features available immediately for your entire team. No credit card required to start.'}
         </p>
       </div>
 
-      {/* Pricing Cards Grid */}
+      {/* Pricing Cards Grid - 4 Columns */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '24px',
           alignItems: 'stretch',
+          paddingTop: '20px', // Prevents any floating badges from being clipped
         }}
       >
         {tiers.map((tier) => {
           const isSelected = selectedPlan === tier.id;
+
           return (
             <div
               key={tier.id}
               onClick={() => setSelectedPlan(tier.id)}
-              className="card"
+              className="card hover-lift"
               style={{
                 padding: '32px 24px',
-                borderRadius: '20px',
+                borderRadius: '24px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 position: 'relative',
                 cursor: 'pointer',
-                border: tier.popular
+                // Burgundy border when selected
+                border: isSelected
                   ? '2px solid var(--primary)'
-                  : isSelected
-                  ? '2px solid var(--primary-border)'
+                  : tier.popular
+                  ? '2px solid rgba(139, 0, 33, 0.45)'
                   : '1px solid var(--border-light)',
-                background: tier.popular
-                  ? 'linear-gradient(180deg, var(--bg-surface) 0%, rgba(139, 0, 33, 0.02) 100%)'
+                // Burgundy glow and background tint when selected
+                background: isSelected
+                  ? 'linear-gradient(180deg, var(--bg-surface) 0%, rgba(139, 0, 33, 0.08) 100%)'
                   : 'var(--bg-surface)',
-                boxShadow: tier.popular ? 'var(--shadow-lg), var(--primary-glow)' : 'var(--shadow-card)',
-                transform: tier.popular ? 'scale(1.02)' : 'none',
-                transition: 'all 0.25s ease',
+                boxShadow: isSelected
+                  ? '0 0 0 3px rgba(139, 0, 33, 0.35), 0 14px 34px -4px rgba(139, 0, 33, 0.25)'
+                  : 'var(--shadow-card)',
+                transform: isSelected ? 'scale(1.02)' : 'none',
+                transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
+              {/* Popular Badge - Properly Centered & Unclipped */}
               {tier.popular && (
                 <div
                   style={{
                     position: 'absolute',
-                    top: '-13px',
-                    left: isAr ? 'auto' : '50%',
-                    right: isAr ? '50%' : 'auto',
-                    transform: 'translateX(50%)',
+                    top: '-14px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
                     background: 'var(--primary-gradient)',
                     color: '#ffffff',
                     fontSize: '11px',
                     fontWeight: 900,
                     textTransform: 'uppercase',
                     letterSpacing: '0.06em',
-                    padding: '4px 14px',
+                    padding: '5px 16px',
                     borderRadius: '999px',
-                    boxShadow: '0 4px 12px rgba(139, 0, 33, 0.35)',
+                    boxShadow: '0 4px 14px rgba(139, 0, 33, 0.4)',
+                    whiteSpace: 'nowrap',
+                    zIndex: 10,
                   }}
                 >
                   {isAr ? 'الأكثر طلباً وتوفيراً' : 'Most Popular'}
                 </div>
               )}
 
+              {/* Free Trial Tag */}
+              {tier.id === 'trial' && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '-14px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: isSelected ? 'var(--primary-gradient)' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    color: '#ffffff',
+                    fontSize: '11px',
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    padding: '5px 16px',
+                    borderRadius: '999px',
+                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)',
+                    whiteSpace: 'nowrap',
+                    zIndex: 10,
+                  }}
+                >
+                  {isAr ? 'تجربة مجانية 14 يوماً' : '14-Day Free Trial'}
+                </div>
+              )}
+
               <div>
+                {/* Header row: Title + Savings pill */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main)' }}>
                     {isAr ? tier.nameAr : tier.nameEn}
@@ -322,13 +293,14 @@ export const PricingSection: React.FC<{ onRequestAccess: () => void }> = ({ onRe
                   {tier.savingsEn && (
                     <span
                       style={{
-                        fontSize: '11.5px',
+                        fontSize: '11px',
                         fontWeight: 800,
                         color: 'var(--primary)',
                         background: 'var(--primary-light)',
-                        padding: '2px 8px',
+                        padding: '3px 8px',
                         borderRadius: '6px',
                         border: '1px solid var(--primary-border)',
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {isAr ? tier.savingsAr : tier.savingsEn}
@@ -336,21 +308,23 @@ export const PricingSection: React.FC<{ onRequestAccess: () => void }> = ({ onRe
                   )}
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', margin: '20px 0 6px 0' }}>
-                  <span style={{ fontSize: '42px', fontWeight: 900, color: 'var(--text-main)', letterSpacing: '-1px' }}>
-                    ${tier.perMonth}
+                {/* Price Display */}
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', margin: '18px 0 4px 0' }}>
+                  <span style={{ fontSize: '42px', fontWeight: 900, color: 'var(--text-main)', letterSpacing: '-1.5px', lineHeight: 1 }}>
+                    {isAr ? tier.priceDisplayAr : tier.priceDisplayEn}
                   </span>
-                  <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                    {isAr ? '/ شهر' : '/ mo'}
+                  <span style={{ fontSize: '13.5px', color: 'var(--text-secondary)', fontWeight: 700 }}>
+                    {isAr ? tier.perMonthDisplayAr : tier.perMonthDisplayEn}
                   </span>
                 </div>
 
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '24px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '22px' }}>
                   {isAr ? tier.billingPeriodAr : tier.billingPeriodEn}
                 </div>
 
-                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '20px', marginBottom: '24px' }}>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Features List */}
+                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '18px', marginBottom: '24px' }}>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '11px' }}>
                     {(isAr ? tier.featuresAr : tier.featuresEn).map((feat, idx) => (
                       <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '13px', color: 'var(--text-secondary)' }}>
                         <div
@@ -358,31 +332,34 @@ export const PricingSection: React.FC<{ onRequestAccess: () => void }> = ({ onRe
                             width: '18px',
                             height: '18px',
                             borderRadius: '50%',
-                            background: 'var(--primary-light)',
-                            color: 'var(--primary)',
+                            background: isSelected ? 'var(--primary)' : 'var(--primary-light)',
+                            color: isSelected ? '#ffffff' : 'var(--primary)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
                             marginTop: '2px',
+                            transition: 'all 0.2s ease',
                           }}
                         >
-                          <Check size={12} strokeWidth={3} />
+                          <Check size={11} strokeWidth={3} />
                         </div>
-                        <span>{feat}</span>
+                        <span style={{ lineHeight: 1.45 }}>{feat}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               </div>
 
+              {/* Call to Action Button */}
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
+                  setSelectedPlan(tier.id);
                   onRequestAccess();
                 }}
-                className={tier.popular ? 'btn btn-primary' : 'btn btn-secondary'}
+                className={isSelected || tier.popular ? 'btn btn-primary' : 'btn btn-secondary'}
                 style={{
                   width: '100%',
                   padding: '12px',
@@ -390,21 +367,28 @@ export const PricingSection: React.FC<{ onRequestAccess: () => void }> = ({ onRe
                   fontWeight: 800,
                   fontSize: '13.5px',
                   textAlign: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: isSelected ? 'var(--primary-glow)' : undefined,
                 }}
               >
-                {isAr ? 'ابدأ تجربة الـ 14 يوماً مجاناً' : 'Start 14-Day Free Trial'}
+                <span>{isAr ? tier.buttonTextAr : tier.buttonTextEn}</span>
+                <ArrowRight size={15} />
               </button>
             </div>
           );
         })}
       </div>
 
-      <div style={{ textAlign: 'center', marginTop: '48px', color: 'var(--text-muted)', fontSize: '13px' }}>
+      {/* Security & Money-back Guarantee note */}
+      <div style={{ textAlign: 'center', marginTop: '48px', color: 'var(--text-muted)', fontSize: '13.5px' }}>
         <Shield size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />
         <span>
           {isAr
-            ? 'ضمان استرجاع الأموال لمدة 30 يوماً بعد انتهاء الفترة المجانية. تشفير كامل للبيانات.'
-            : 'All paid plans include encrypted multi-tenant data isolation and continuous backups.'}
+            ? 'تشفير كامل لكافة قنوات وبيانات المؤسسة. ضمان استرجاع الأموال لمدة 30 يوماً على جميع الباقات المدفوعة.'
+            : 'All plans include end-to-end multi-tenant database isolation, daily backups, and a 30-day money-back guarantee.'}
         </span>
       </div>
     </section>

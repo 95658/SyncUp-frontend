@@ -18,6 +18,21 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
   const t = landingTranslations[language].nav;
   const isRtl = language === 'ar';
 
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const element = document.getElementById(targetId);
+    if (element) {
+      const headerOffset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+    setMobileMenuOpen(false);
+  };
+
   return (
     <header
       style={{
@@ -26,7 +41,7 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
         zIndex: 100,
         width: '100%',
         backdropFilter: 'blur(20px)',
-        background: theme === 'dark' ? 'rgba(9, 13, 22, 0.85)' : 'rgba(255, 255, 255, 0.88)',
+        background: theme === 'dark' ? 'rgba(13, 8, 10, 0.88)' : 'rgba(255, 255, 255, 0.88)',
         borderBottom: '1px solid var(--border-light)',
         transition: 'background-color 0.25s ease, border-color 0.25s ease',
       }}
@@ -60,17 +75,17 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
               height: '42px',
               borderRadius: '12px',
               background: theme === 'dark'
-                ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
-                : 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)',
+                ? 'linear-gradient(135deg, #170E13 0%, #2A1420 100%)'
+                : 'linear-gradient(135deg, #ffffff 0%, #fff1f2 100%)',
               border: theme === 'dark'
-                ? '1px solid rgba(56, 189, 248, 0.25)'
-                : '1px solid rgba(203, 213, 225, 0.9)',
+                ? '1px solid rgba(225, 29, 72, 0.35)'
+                : '1px solid rgba(254, 205, 211, 0.9)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: theme === 'dark'
-                ? '0 4px 16px rgba(37, 99, 235, 0.25)'
-                : '0 4px 14px rgba(15, 23, 42, 0.08)',
+                ? '0 4px 16px rgba(139, 0, 33, 0.35)'
+                : '0 4px 14px rgba(139, 0, 33, 0.08)',
               transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               padding: '6px',
             }}
@@ -104,7 +119,7 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
           </div>
         </Link>
 
-        {/* Desktop Navigation Links with animated hover underline */}
+        {/* Desktop Navigation Links with smooth scroll */}
         <nav
           style={{
             display: 'none',
@@ -116,22 +131,22 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
           }}
           className="desktop-nav"
         >
-          <a href="#features" className="nav-link">
+          <a href="#features" onClick={(e) => handleNavClick(e, 'features')} className="nav-link">
             {t.features}
           </a>
-          <a href="#comparison" className="nav-link">
+          <a href="#comparison" onClick={(e) => handleNavClick(e, 'comparison')} className="nav-link">
             {t.comparison}
           </a>
-          <a href="#workflow" className="nav-link">
+          <a href="#workflow" onClick={(e) => handleNavClick(e, 'workflow')} className="nav-link">
             {t.workflow}
           </a>
-          <a href="#security" className="nav-link">
+          <a href="#security" onClick={(e) => handleNavClick(e, 'security')} className="nav-link">
             {t.security}
           </a>
-          <a href="#pricing" className="nav-link">
+          <a href="#pricing" onClick={(e) => handleNavClick(e, 'pricing')} className="nav-link">
             {isRtl ? 'الأسعار والتجربة' : 'Pricing & Trial'}
           </a>
-          <a href="#faq" className="nav-link">
+          <a href="#faq" onClick={(e) => handleNavClick(e, 'faq')} className="nav-link">
             {t.faq}
           </a>
         </nav>
@@ -265,35 +280,42 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
         >
           <a
             href="#features"
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={(e) => handleNavClick(e, 'features')}
             style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-main)' }}
           >
             {t.features}
           </a>
           <a
             href="#comparison"
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={(e) => handleNavClick(e, 'comparison')}
             style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-main)' }}
           >
             {t.comparison}
           </a>
           <a
             href="#workflow"
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={(e) => handleNavClick(e, 'workflow')}
             style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-main)' }}
           >
             {t.workflow}
           </a>
           <a
             href="#security"
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={(e) => handleNavClick(e, 'security')}
             style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-main)' }}
           >
             {t.security}
           </a>
           <a
+            href="#pricing"
+            onClick={(e) => handleNavClick(e, 'pricing')}
+            style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-main)' }}
+          >
+            {isRtl ? 'الأسعار والتجربة' : 'Pricing & Trial'}
+          </a>
+          <a
             href="#faq"
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={(e) => handleNavClick(e, 'faq')}
             style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-main)' }}
           >
             {t.faq}

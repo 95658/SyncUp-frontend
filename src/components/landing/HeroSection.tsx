@@ -95,7 +95,7 @@ export function HeroSection({ onRequestAccess }: HeroSectionProps) {
         <span
           className="animate-gradient-text"
           style={{
-            background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #2563eb 100%)',
+            background: 'linear-gradient(135deg, #E11D48 0%, #FB7185 45%, #8B0021 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             display: 'inline-block',

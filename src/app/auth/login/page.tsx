@@ -336,7 +336,7 @@ export default function LoginPage() {
       alignItems: 'center',
       justifyContent: 'center',
       background: isDark
-        ? 'radial-gradient(ellipse at 50% 15%, #0f172a 0%, #090d16 60%, #020617 100%)'
+        ? 'radial-gradient(ellipse at 50% 15%, #1A0E15 0%, #0D080A 60%, #060305 100%)'
         : 'radial-gradient(ellipse at 50% 15%, #ebf4ff 0%, #f8fafc 55%, #e2e8f0 100%)',
       padding: '24px 16px',
       position: 'relative',
@@ -436,17 +436,17 @@ export default function LoginPage() {
           height: '68px',
           borderRadius: '20px',
           background: isDark
-            ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
-            : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+            ? 'linear-gradient(135deg, #170E13 0%, #2A1420 100%)'
+            : 'linear-gradient(135deg, #ffffff 0%, #fff1f2 100%)',
           border: isDark
-            ? '1.5px solid rgba(56, 189, 248, 0.25)'
-            : '1.5px solid rgba(226, 232, 240, 0.95)',
+            ? '1.5px solid rgba(225, 29, 72, 0.35)'
+            : '1.5px solid rgba(254, 205, 211, 0.95)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           boxShadow: isDark
-            ? '0 8px 30px rgba(37, 99, 235, 0.35), 0 2px 8px rgba(37, 99, 235, 0.2)'
-            : '0 10px 25px -4px rgba(37, 99, 235, 0.15), 0 4px 12px rgba(15, 23, 42, 0.06)',
+            ? '0 8px 30px rgba(139, 0, 33, 0.45), 0 2px 8px rgba(139, 0, 33, 0.25)'
+            : '0 10px 25px -4px rgba(139, 0, 33, 0.2), 0 4px 12px rgba(139, 0, 33, 0.08)',
           margin: '0 auto 16px auto',
           padding: '12px',
           animation: 'pulseGlow 3s ease-in-out infinite',
@@ -462,7 +462,7 @@ export default function LoginPage() {
           lineHeight: 1.2,
           transition: 'color 0.2s ease',
         }}>
-          Welcome to Sync<span style={{ color: '#2563eb' }}>Up</span>
+          Welcome to Sync<span style={{ color: 'var(--primary)' }}>Up</span>
         </h1>
         <p style={{
           fontSize: '14.5px',
