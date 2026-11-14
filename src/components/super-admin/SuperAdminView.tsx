@@ -1107,28 +1107,33 @@ export const SuperAdminView: React.FC = () => {
             {createdInviteLink ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{
-                  padding: '14px',
-                  background: '#ecfdf5',
-                  border: '1px solid #a7f3d0',
-                  borderRadius: '10px',
-                  color: '#065f46',
+                  padding: '16px',
+                  background: '#fff1f2',
+                  border: '1.5px solid #fecdd3',
+                  borderRadius: '12px',
+                  color: '#881337',
                   fontSize: '13px',
                 }}>
-                  <strong>✅ {isAr ? 'تم إنشاء المؤسسة وحساب المدير بنجاح!' : 'Organization & Admin Account Provisioned!'}</strong>
-                  <div style={{ marginTop: '6px', fontSize: '12px' }}>
-                    {isAr ? 'تم إنشاء بيانات الدخول المباشرة ورابط التفعيل للمدير:' : 'Direct login credentials and activation link ready:'}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: '14px', marginBottom: '4px' }}>
+                    <Mail size={18} color="#8B0021" />
+                    <span>{isAr ? 'تم إرسال دعوة التفعيل بالبريد الإلكتروني بنجاح!' : 'Activation Invitation Email Dispatched!'}</span>
+                  </div>
+                  <div style={{ fontSize: '12.5px', lineHeight: 1.5, color: '#9f1239' }}>
+                    {isAr
+                      ? `تم إرسال رابط التفعيل الرسمي إلى (${createdOrgEmail}). لن يتمكن مدير المؤسسة من تسجيل الدخول إلا بعد فتح الرابط في بريده وقبول الدعوة وتعيين كلمة المرور.`
+                      : `An official invitation email has been sent to (${createdOrgEmail}). The organization admin cannot log in until they accept the invitation and choose their password.`}
                   </div>
                 </div>
 
-                {/* Credentials summary box */}
+                {/* Organization & Invitation Details */}
                 <div style={{
-                  padding: '14px',
+                  padding: '16px',
                   background: 'var(--bg-app)',
                   border: '1px solid var(--border-light)',
-                  borderRadius: '10px',
+                  borderRadius: '12px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '8px',
+                  gap: '10px',
                   fontSize: '12.5px',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1136,44 +1141,55 @@ export const SuperAdminView: React.FC = () => {
                     <strong style={{ color: 'var(--text-main)' }}>{createdOrgName}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Admin Email:</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>Admin Recipient:</span>
                     <strong style={{ color: 'var(--primary)' }}>{createdOrgEmail}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Admin Password:</span>
-                    <strong style={{ fontFamily: 'var(--font-family-mono)', background: 'var(--bg-surface)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-light)' }}>
-                      {createdOrgPassword}
-                    </strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Status:</span>
+                    <span className="badge badge-warning">{isAr ? 'في انتظار قبول الدعوة' : 'Pending Acceptance'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Free Trial:</span>
+                    <span style={{ color: 'var(--primary)', fontWeight: 700 }}>14 Days (Full Access)</span>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard(`Organization: ${createdOrgName}\nEmail: ${createdOrgEmail}\nPassword: ${createdOrgPassword}`)}
-                    className="btn btn-secondary"
-                    style={{ flex: 1, padding: '10px', fontSize: '12.5px' }}
-                  >
-                    {copied ? <Check size={15} color="#10b981" /> : <Copy size={15} />}
-                    <span>{copied ? 'Copied!' : 'Copy Credentials'}</span>
-                  </button>
+                {/* Fallback Invitation Link */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                    {isAr ? 'رابط الدعوة المباشر (يمكنك نسخه وإرساله للمدير يدوياً):' : 'Direct Invitation Link (Fallback):'}
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      readOnly
+                      value={createdInviteLink}
+                      className="input-field"
+                      style={{ height: '38px', fontSize: '12px', color: 'var(--text-secondary)', background: 'var(--bg-app)' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(createdInviteLink)}
+                      className="btn btn-secondary"
+                      style={{ padding: '0 14px', fontSize: '12px', flexShrink: 0 }}
+                    >
+                      {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+                      <span>{copied ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                </div>
 
+                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
                   <button
                     type="button"
                     onClick={() => {
-                      const org = organizations.find((o) => o.adminEmail === createdOrgEmail) || {
-                        id: 'org-' + Date.now(),
-                        name: createdOrgName,
-                        adminName: 'Admin',
-                        adminEmail: createdOrgEmail,
-                      };
-                      handleSwitchToAdmin(org as any, createdOrgPassword);
+                      setCreateOrgModalOpen(false);
+                      setCreatedInviteLink(null);
                     }}
                     className="btn btn-primary"
-                    style={{ flex: 1, padding: '10px', fontSize: '12.5px' }}
+                    style={{ width: '100%', padding: '10px', fontSize: '13px' }}
                   >
-                    <ExternalLink size={15} />
-                    <span>{isAr ? 'تسجيل كمدير الآن' : 'Login as Admin'}</span>
+                    <span>{isAr ? 'تم الإغلاق والإنشاء' : 'Done & Close'}</span>
                   </button>
                 </div>
               </div>
@@ -1222,6 +1238,11 @@ export const SuperAdminView: React.FC = () => {
                     className="input-field"
                     style={{ height: '40px' }}
                   />
+                  <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px' }}>
+                    {isAr
+                      ? '📩 سيتم إرسال دعوة تفعيل رسمية إلى هذا البريد. لن يتمكن المدير من الدخول إلا بعد قبولها وتعيين كلمة مروره.'
+                      : '📩 An activation invitation will be sent to this email. The admin can only log in after accepting and setting their password.'}
+                  </div>
                 </div>
 
                 <div>

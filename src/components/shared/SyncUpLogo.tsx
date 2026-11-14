@@ -63,14 +63,14 @@ export const SyncUpLogo: React.FC<SyncUpLogoProps> = ({
         {isDark ? (
           <>
             <linearGradient id={grad1Id} x1="15%" y1="15%" x2="85%" y2="85%">
-              <stop offset="0%" stopColor="#38BDF8" />
-              <stop offset="50%" stopColor="#2563EB" />
-              <stop offset="100%" stopColor="#4F46E5" />
+              <stop offset="0%" stopColor="#FB7185" />
+              <stop offset="50%" stopColor="#E11D48" />
+              <stop offset="100%" stopColor="#8B0021" />
             </linearGradient>
             <linearGradient id={grad2Id} x1="85%" y1="85%" x2="15%" y2="15%">
-              <stop offset="0%" stopColor="#06B6D4" />
-              <stop offset="60%" stopColor="#10B981" />
-              <stop offset="100%" stopColor="#3B82F6" />
+              <stop offset="0%" stopColor="#FDA4AF" />
+              <stop offset="60%" stopColor="#BE123C" />
+              <stop offset="100%" stopColor="#4C0519" />
             </linearGradient>
             <filter id="darkGlowFilt" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="3" result="blur" />
@@ -80,17 +80,17 @@ export const SyncUpLogo: React.FC<SyncUpLogoProps> = ({
         ) : (
           <>
             <linearGradient id={grad1Id} x1="15%" y1="15%" x2="85%" y2="85%">
-              <stop offset="0%" stopColor="#0284C7" />
-              <stop offset="50%" stopColor="#2563EB" />
-              <stop offset="100%" stopColor="#4338CA" />
+              <stop offset="0%" stopColor="#E11D48" />
+              <stop offset="50%" stopColor="#9F1239" />
+              <stop offset="100%" stopColor="#8B0021" />
             </linearGradient>
             <linearGradient id={grad2Id} x1="85%" y1="85%" x2="15%" y2="15%">
-              <stop offset="0%" stopColor="#0891B2" />
-              <stop offset="60%" stopColor="#059669" />
-              <stop offset="100%" stopColor="#1D4ED8" />
+              <stop offset="0%" stopColor="#F43F5E" />
+              <stop offset="60%" stopColor="#BE123C" />
+              <stop offset="100%" stopColor="#73001B" />
             </linearGradient>
             <filter id="lightDropShadow" x="-10%" y="-10%" width="120%" height="120%">
-              <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor="#0f172a" floodOpacity="0.12" />
+              <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor="#8B0021" floodOpacity="0.2" />
             </filter>
           </>
         )}
@@ -106,7 +106,7 @@ export const SyncUpLogo: React.FC<SyncUpLogoProps> = ({
           strokeLinejoin="round"
         />
         {/* Top connection node */}
-        <circle cx="72" cy="34" r="7.5" fill={isDark ? '#38BDF8' : '#0284C7'} />
+        <circle cx="72" cy="34" r="7.5" fill={isDark ? '#FB7185' : '#E11D48'} />
         <circle cx="72" cy="34" r="3.5" fill="#FFFFFF" />
 
         {/* Bottom curved track */}
@@ -118,7 +118,7 @@ export const SyncUpLogo: React.FC<SyncUpLogoProps> = ({
           strokeLinejoin="round"
         />
         {/* Bottom connection node */}
-        <circle cx="28" cy="66" r="7.5" fill={isDark ? '#10B981' : '#059669'} />
+        <circle cx="28" cy="66" r="7.5" fill={isDark ? '#FDA4AF' : '#8B0021'} />
         <circle cx="28" cy="66" r="3.5" fill="#FFFFFF" />
 
         {/* Central bridge */}

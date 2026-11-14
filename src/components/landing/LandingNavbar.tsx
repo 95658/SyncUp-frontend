@@ -128,6 +128,9 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
           <a href="#security" className="nav-link">
             {t.security}
           </a>
+          <a href="#pricing" className="nav-link">
+            {isRtl ? 'الأسعار والتجربة' : 'Pricing & Trial'}
+          </a>
           <a href="#faq" className="nav-link">
             {t.faq}
           </a>

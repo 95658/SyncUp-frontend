@@ -8,14 +8,14 @@
   --font-family-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-family-mono: "SF Mono", Monaco, Menlo, Consolas, "JetBrains Mono", monospace;
 
-  /* Primary Brand Palette */
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --primary-active: #1e40af;
-  --primary-light: #eff6ff;
-  --primary-border: #bfdbfe;
-  --primary-gradient: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  --primary-glow: 0 4px 20px rgba(37, 99, 235, 0.22);
+  /* Primary Brand Palette (Royal Burgundy) */
+  --primary: #8B0021;
+  --primary-hover: #73001B;
+  --primary-active: #5C0015;
+  --primary-light: #fff1f2;
+  --primary-border: #fecdd3;
+  --primary-gradient: linear-gradient(135deg, #8B0021 0%, #be123c 100%);
+  --primary-glow: 0 4px 20px rgba(139, 0, 33, 0.28);
 
   /* Neutrals & Surfaces */
   --bg-app: #f8fafc;

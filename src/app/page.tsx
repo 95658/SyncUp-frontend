@@ -7,6 +7,7 @@ import { HeroSection } from '@/components/landing/HeroSection';
 import { FeatureShowcase } from '@/components/landing/FeatureShowcase';
 import { ComparisonSection } from '@/components/landing/ComparisonSection';
 import { SecurityWorkflowSection } from '@/components/landing/SecurityWorkflowSection';
+import { PricingSection } from '@/components/landing/PricingSection';
 import { FAQSection } from '@/components/landing/FAQSection';
 import { LandingFooter } from '@/components/landing/LandingFooter';
 import { RequestAccessModal } from '@/components/landing/RequestAccessModal';
@@ -88,6 +89,7 @@ export default function LandingPage() {
         <FeatureShowcase />
         <ComparisonSection />
         <SecurityWorkflowSection />
+        <PricingSection onRequestAccess={() => setRequestModalOpen(true)} />
         <FAQSection />
       </main>
 
