@@ -128,8 +128,8 @@ export default function LoginPage() {
       alignItems: 'center',
       justifyContent: 'center',
       background: isDark
-        ? 'radial-gradient(ellipse at 50% 15%, #1A0E15 0%, #0D080A 60%, #060305 100%)'
-        : 'radial-gradient(ellipse at 50% 15%, #ebf4ff 0%, #f8fafc 55%, #e2e8f0 100%)',
+        ? 'radial-gradient(ellipse at 50% 15%, #151A26 0%, #0B0E14 60%, #06080C 100%)'
+        : 'radial-gradient(ellipse at 50% 15%, #fff1f2 0%, #f8fafc 55%, #e2e8f0 100%)',
       padding: '24px 16px',
       position: 'relative',
       overflow: 'hidden',
@@ -228,7 +228,7 @@ export default function LoginPage() {
           height: '68px',
           borderRadius: '20px',
           background: isDark
-            ? 'linear-gradient(135deg, #170E13 0%, #2A1420 100%)'
+            ? 'linear-gradient(135deg, #11151F 0%, #181E2B 100%)'
             : 'linear-gradient(135deg, #ffffff 0%, #fff1f2 100%)',
           border: isDark
             ? '1.5px solid rgba(225, 29, 72, 0.35)'
@@ -458,7 +458,7 @@ export default function LoginPage() {
           height: 480px;
           top: -100px;
           right: -100px;
-          background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(99, 102, 241, 0.05) 70%, transparent 100%);
+          background: radial-gradient(circle, rgba(139, 0, 33, 0.2) 0%, rgba(190, 18, 60, 0.08) 70%, transparent 100%);
           animation: floatOrb 12s ease-in-out infinite alternate;
         }
         .login-orb-2 {
@@ -466,7 +466,7 @@ export default function LoginPage() {
           height: 400px;
           bottom: -80px;
           left: -80px;
-          background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, rgba(59, 130, 246, 0.04) 70%, transparent 100%);
+          background: radial-gradient(circle, rgba(225, 29, 72, 0.15) 0%, rgba(139, 0, 33, 0.05) 70%, transparent 100%);
           animation: floatOrb 10s ease-in-out infinite alternate-reverse;
         }
         .login-orb-3 {
@@ -475,7 +475,7 @@ export default function LoginPage() {
           top: 40%;
           left: 50%;
           transform: translate(-50%, -50%);
-          background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(251, 113, 133, 0.08) 0%, transparent 70%);
           animation: pulseOrb 8s ease-in-out infinite;
         }
         @keyframes floatOrb {
@@ -488,7 +488,7 @@ export default function LoginPage() {
         }
         .login-btn-shine:hover {
           filter: brightness(1.05);
-          box-shadow: 0 4px 18px rgba(37, 99, 235, 0.4);
+          box-shadow: 0 4px 18px rgba(139, 0, 33, 0.4);
         }
       `}</style>
     </div>

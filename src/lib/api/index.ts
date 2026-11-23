@@ -1,4 +1,16 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+export const getApiBaseUrl = (): string => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return `${window.location.origin}/api/v1`;
+    }
+  }
+  return 'http://localhost:4000/api/v1';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('syncup_access_token') : null;
@@ -49,9 +61,22 @@ export const superAdminApi = {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
+  deleteOrganization: (id: string) =>
+    request<{ success: boolean; message: string }>(`/super-admin/organizations/${id}`, {
+      method: 'DELETE',
+    }),
   getAdministrators: () => request<any[]>('/super-admin/administrators'),
   getUsers: () => request<any[]>('/super-admin/users'),
   getInvitations: () => request<any[]>('/super-admin/invitations'),
+  resendInvitation: (id: string) =>
+    request<{ success: boolean; invitationLink: string; expiresAt: string; message: string }>(
+      `/super-admin/invitations/${id}/resend`,
+      { method: 'POST' }
+    ),
+  revokeInvitation: (id: string) =>
+    request<{ success: boolean; message: string }>(`/super-admin/invitations/${id}`, {
+      method: 'DELETE',
+    }),
   getAuditLogs: (limit?: number) => request<any[]>(`/super-admin/audit-logs${limit ? `?limit=${limit}` : ''}`),
 };
 

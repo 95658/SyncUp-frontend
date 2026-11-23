@@ -32,15 +32,15 @@ export const SyncUpLogo: React.FC<SyncUpLogoProps> = ({
   const grad2Id = isDark ? 'syncDarkS2' : 'syncLightS2';
 
   const defaultContainerBg = isDark
-    ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+    ? 'linear-gradient(135deg, #11151F 0%, #181E2B 100%)'
     : 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)';
 
   const defaultBorder = isDark
-    ? '1px solid rgba(56, 189, 248, 0.2)'
+    ? '1px solid rgba(190, 18, 60, 0.25)'
     : '1px solid rgba(203, 213, 225, 0.8)';
 
   const defaultShadow = isDark
-    ? '0 6px 20px -2px rgba(37, 99, 235, 0.35)'
+    ? '0 6px 20px -2px rgba(139, 0, 33, 0.35)'
     : '0 6px 18px -2px rgba(15, 23, 42, 0.08)';
 
   const computedTextColor = textColor

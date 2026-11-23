@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
@@ -36,6 +36,7 @@ import {
   Key,
   Eye,
   EyeOff,
+  Trash2,
 } from 'lucide-react';
 
 export const SuperAdminView: React.FC = () => {
@@ -51,6 +52,7 @@ export const SuperAdminView: React.FC = () => {
     isCreateOrgModalOpen,
     setCreateOrgModalOpen,
     createOrganization,
+    deleteOrganization,
     toggleOrgStatus,
     setOrgAdminPassword,
     setActiveOrgId,
@@ -80,83 +82,98 @@ export const SuperAdminView: React.FC = () => {
   const [showEditingPassword, setShowEditingPassword] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [copiedModalKey, setCopiedModalKey] = useState<string | null>(null);
+  const [deletingOrgId, setDeletingOrgId] = useState<string | null>(null);
+
+  const refreshSuperAdminData = useCallback(async () => {
+    try {
+      const [orgs, analytics, admins, users, invitations, logs] = await Promise.all([
+        superAdminApi.getOrganizations().catch(() => []),
+        superAdminApi.getAnalytics().catch(() => null),
+        superAdminApi.getAdministrators().catch(() => []),
+        superAdminApi.getUsers().catch(() => []),
+        superAdminApi.getInvitations().catch(() => []),
+        superAdminApi.getAuditLogs().catch(() => []),
+      ]);
+
+      useWorkspaceStore.setState((state) => {
+        let updatedOrgs = state.organizations;
+        if (Array.isArray(orgs)) {
+          updatedOrgs = orgs.map((item: any) => ({
+            id: item.id,
+            name: item.name,
+            slug: item.slug || item.name.toLowerCase().replace(/\s+/g, '-'),
+            logoUrl: item.logoUrl || undefined,
+            description: item.description || undefined,
+            adminName: item.members?.[0]?.user?.fullName || item.adminName || 'Admin',
+            adminEmail: item.members?.[0]?.user?.email || item.adminEmail || '',
+            memberCount: item.members?.length || item._count?.members || item.memberCount || 1,
+            status: (item.status === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE') as 'ACTIVE' | 'SUSPENDED',
+            plan: (item.plan || 'ENTERPRISE') as 'FREE' | 'PRO' | 'BUSINESS' | 'ENTERPRISE',
+            createdAt: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Active',
+          }));
+        }
+
+        const orgsCount = analytics?.totalOrganizations ?? updatedOrgs.length;
+        const activeOrgsCount = analytics?.activeOrganizations ?? updatedOrgs.filter((o) => o.status === 'ACTIVE').length;
+        const usersCount = analytics?.totalUsers ?? (Array.isArray(users) ? users.length : 0);
+        const activeUsersCount = analytics?.activeUsers ?? usersCount;
+        const calculatedMRR = activeOrgsCount * 49;
+
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('syncup_orgs', JSON.stringify(updatedOrgs));
+          } catch {}
+        }
+
+        return {
+          organizations: updatedOrgs,
+          adminAnalytics: {
+            ...state.adminAnalytics,
+            ...(analytics || {}),
+            totalOrganizations: orgsCount,
+            activeOrganizations: activeOrgsCount,
+            totalUsers: usersCount,
+            activeUsers: activeUsersCount,
+            monthlyRecurringRevenue: calculatedMRR,
+            totalRevenue: calculatedMRR * 12,
+            cashFlowGrowth: activeOrgsCount > 0 ? '+18.4%' : '0.0%',
+          },
+          administratorsList: Array.isArray(admins) ? admins : [],
+          platformUsersList: Array.isArray(users) ? users : [],
+          platformInvitationsList: Array.isArray(invitations) ? invitations : [],
+          auditLogsList: Array.isArray(logs) ? logs : [],
+        };
+      });
+    } catch (err) {
+      console.warn('Live super admin analytics sync:', err);
+    }
+  }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    const fetchLiveSuperAdminData = async () => {
-      try {
-        const [orgs, analytics, admins, users, invitations, logs] = await Promise.all([
-          superAdminApi.getOrganizations().catch(() => []),
-          superAdminApi.getAnalytics().catch(() => null),
-          superAdminApi.getAdministrators().catch(() => []),
-          superAdminApi.getUsers().catch(() => []),
-          superAdminApi.getInvitations().catch(() => []),
-          superAdminApi.getAuditLogs().catch(() => []),
-        ]);
+    refreshSuperAdminData();
+  }, [refreshSuperAdminData]);
 
-        if (!isMounted) return;
+  const handleDeleteOrg = async (orgId: string, orgName: string) => {
+    const confirmMsg = isAr
+      ? `هل أنت متأكد من حذف مؤسسة "${orgName}" نهائياً؟\nسيتم حذف جميع القنوات والمستخدمين والبيانات التابعة لها ولا يمكن التراجع عن هذا الإجراء.`
+      : `Are you sure you want to permanently delete "${orgName}"?\nAll associated channels, users, and data will be removed. This cannot be undone.`;
 
-        useWorkspaceStore.setState((state) => {
-          // Map backend organizations if available
-          let updatedOrgs = state.organizations;
-          if (Array.isArray(orgs) && orgs.length > 0) {
-            updatedOrgs = orgs.map((item: any) => ({
-              id: item.id,
-              name: item.name,
-              slug: item.slug || item.name.toLowerCase().replace(/\s+/g, '-'),
-              logoUrl: item.logoUrl || undefined,
-              description: item.description || undefined,
-              adminName: item.members?.[0]?.user?.fullName || item.adminName || 'Admin',
-              adminEmail: item.members?.[0]?.user?.email || item.adminEmail || '',
-              memberCount: item._count?.members || item.memberCount || 1,
-              status: (item.status === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE') as 'ACTIVE' | 'SUSPENDED',
-              plan: (item.plan || 'ENTERPRISE') as 'FREE' | 'PRO' | 'BUSINESS' | 'ENTERPRISE',
-              createdAt: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Active',
-            }));
-          }
+    if (!window.confirm(confirmMsg)) return;
 
-          const orgsCount = Math.max(analytics?.totalOrganizations ?? 0, updatedOrgs.length);
-          const activeOrgsCount = Math.max(
-            analytics?.activeOrganizations ?? 0,
-            updatedOrgs.filter((o) => o.status === 'ACTIVE').length
-          );
-          const usersCount = Math.max(
-            analytics?.totalUsers ?? 0,
-            users?.length ?? 0,
-            updatedOrgs.reduce((acc, o) => acc + (o.memberCount || 1), 0)
-          );
-          const activeUsersCount = Math.max(analytics?.activeUsers ?? 0, usersCount);
-          const calculatedMRR = activeOrgsCount * 49;
-
-          return {
-            organizations: updatedOrgs,
-            adminAnalytics: {
-              ...state.adminAnalytics,
-              ...(analytics || {}),
-              totalOrganizations: orgsCount,
-              activeOrganizations: activeOrgsCount,
-              totalUsers: usersCount,
-              activeUsers: activeUsersCount,
-              monthlyRecurringRevenue: calculatedMRR,
-              totalRevenue: calculatedMRR * 12,
-              cashFlowGrowth: activeOrgsCount > 0 ? '+18.4%' : '0.0%',
-            },
-            administratorsList: admins || [],
-            platformUsersList: users || [],
-            platformInvitationsList: invitations || [],
-            auditLogsList: logs || [],
-          };
-        });
-      } catch (err) {
-        console.warn('Live super admin analytics sync:', err);
-      }
-    };
-
-    fetchLiveSuperAdminData();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    setDeletingOrgId(orgId);
+    try {
+      await deleteOrganization(orgId);
+      await refreshSuperAdminData();
+      showSnack(
+        isAr ? `تم حذف مؤسسة "${orgName}" بنجاح!` : `Organization "${orgName}" deleted successfully!`,
+        'success'
+      );
+    } catch (err: any) {
+      showSnack(err.message || (isAr ? 'فشل حذف المؤسسة' : 'Failed to delete organization'), 'error');
+    } finally {
+      setDeletingOrgId(null);
+    }
+  };
 
   const openSetPasswordModal = (org: Organization) => {
     setPasswordModalOrg(org);
@@ -269,6 +286,7 @@ export const SuperAdminView: React.FC = () => {
       setAdminName('');
       setAdminEmail('');
       setNewOrgPassword('');
+      await refreshSuperAdminData();
       showSnack(isAr ? 'تم إنشاء المؤسسة بنجاح' : 'Organization provisioned successfully!', 'success');
     } catch (err: any) {
       showSnack(err.message || 'Failed to create organization', 'error');
@@ -303,6 +321,35 @@ export const SuperAdminView: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleResendInvitation = async (invId: string) => {
+    try {
+      const res = await superAdminApi.resendInvitation(invId);
+      if (res?.invitationLink) {
+        copyToClipboard(res.invitationLink);
+        showSnack(
+          isAr
+            ? 'تم نسخ رابط التفعيل الرسمي وإعادة إرسال البريد بنجاح!'
+            : 'Activation link copied to clipboard & email dispatched!',
+          'success'
+        );
+      }
+      await refreshSuperAdminData();
+    } catch (err: any) {
+      showSnack(err.message || 'Failed to resend invitation', 'error');
+    }
+  };
+
+  const handleRevokeInvitation = async (invId: string) => {
+    if (!window.confirm(isAr ? 'هل أنت متأكد من إلغاء هذه الدعوة؟' : 'Are you sure you want to revoke this invitation?')) return;
+    try {
+      await superAdminApi.revokeInvitation(invId);
+      showSnack(isAr ? 'تم إلغاء الدعوة بنجاح' : 'Invitation revoked', 'success');
+      await refreshSuperAdminData();
+    } catch (err: any) {
+      showSnack(err.message || 'Failed to revoke invitation', 'error');
+    }
+  };
+
   return (
     <div style={{
       padding: '32px 36px',
@@ -327,13 +374,13 @@ export const SuperAdminView: React.FC = () => {
             alignItems: 'center',
             gap: '8px',
             padding: '4px 12px',
-            background: '#f0f9ff',
-            border: '1px solid #bae6fd',
+            background: 'var(--primary-light)',
+            border: '1px solid var(--primary-border)',
             borderRadius: '9999px',
             marginBottom: '10px',
           }}>
-            <SyncUpLogo size={15} mode="light" />
-            <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#0369a1', letterSpacing: '0.04em' }}>
+            <SyncUpLogo size={15} mode="auto" />
+            <span style={{ fontSize: '11.5px', fontWeight: 800, color: 'var(--primary)', letterSpacing: '0.04em' }}>
               SYNCUP PLATFORM CONTROL PLANE
             </span>
           </div>
@@ -342,13 +389,13 @@ export const SuperAdminView: React.FC = () => {
             fontSize: '30px',
             fontWeight: 800,
             letterSpacing: '-0.8px',
-            color: '#0f172a',
+            color: 'var(--text-main)',
             lineHeight: 1.2,
             marginBottom: '6px',
           }}>
             Super Admin Dashboard
           </h1>
-          <p style={{ fontSize: '14.5px', color: '#64748b', fontWeight: 500 }}>
+          <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', fontWeight: 500 }}>
             Global platform governance, client organization provisioning, and audit logs.
           </p>
         </div>
@@ -377,7 +424,7 @@ export const SuperAdminView: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
-        borderBottom: '1px solid #e2e8f0',
+        borderBottom: '1px solid var(--border-light)',
         paddingBottom: '2px',
         overflowX: 'auto',
       }}>
@@ -404,8 +451,8 @@ export const SuperAdminView: React.FC = () => {
                 padding: '10px 16px',
                 border: 'none',
                 background: 'none',
-                borderBottom: isActive ? '2px solid #0284c7' : '2px solid transparent',
-                color: isActive ? '#0369a1' : '#64748b',
+                borderBottom: isActive ? '2px solid var(--primary)' : '2px solid transparent',
+                color: isActive ? '#FFFFFF' : 'var(--text-muted)',
                 fontWeight: isActive ? 800 : 600,
                 fontSize: '13.5px',
                 cursor: 'pointer',
@@ -413,8 +460,8 @@ export const SuperAdminView: React.FC = () => {
                 whiteSpace: 'nowrap',
               }}
             >
-              <Icon size={16} color={isActive ? '#0284c7' : '#94a3b8'} />
-              <span>{tab.label}</span>
+              <Icon size={16} color={isActive ? 'var(--primary)' : 'var(--text-muted)'} />
+              <span style={{ color: isActive ? '#FFFFFF' : 'var(--text-muted)' }}>{tab.label}</span>
             </button>
           );
         })}
@@ -432,60 +479,60 @@ export const SuperAdminView: React.FC = () => {
             }}
           >
             {/* Money Income / ERP Total Revenue */}
-            <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.04) 0%, rgba(5, 150, 105, 0.04) 100%)', border: '1px solid #a7f3d0' }}>
+            <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(5, 150, 105, 0.05) 100%)', border: '1px solid var(--success-border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div
                   style={{
                     width: '46px',
                     height: '46px',
                     borderRadius: '12px',
-                    background: '#ecfdf5',
-                    border: '1px solid #a7f3d0',
+                    background: 'var(--success-bg)',
+                    border: '1px solid var(--success-border)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <DollarSign size={24} color="#059669" />
+                  <DollarSign size={24} color="var(--success)" />
                 </div>
                 <span className="badge badge-success">
                   0.0% MoM
                 </span>
               </div>
               <div>
-                <div style={{ fontSize: '32px', fontWeight: 900, color: '#065f46' }}>
+                <div style={{ fontSize: '32px', fontWeight: 900, color: 'var(--success)' }}>
                   $0
                 </div>
-                <div style={{ fontSize: '13px', color: '#059669', marginTop: '4px', fontWeight: 700 }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 700 }}>
                   {isAr ? 'إجمالي دخل المنصة (ERP Income)' : 'Platform Total Income (ERP)'}
                 </div>
               </div>
             </div>
 
             {/* Monthly Recurring Revenue */}
-            <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.04) 0%, rgba(3, 105, 161, 0.04) 100%)', border: '1px solid #bae6fd' }}>
+            <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(139, 0, 33, 0.05) 0%, rgba(190, 18, 60, 0.05) 100%)', border: '1px solid var(--primary-border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div
                   style={{
                     width: '46px',
                     height: '46px',
                     borderRadius: '12px',
-                    background: '#f0f9ff',
-                    border: '1px solid #bae6fd',
+                    background: 'var(--primary-light)',
+                    border: '1px solid var(--primary-border)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <TrendingUp size={24} color="#0284c7" />
+                  <TrendingUp size={24} color="var(--primary)" />
                 </div>
                 <span className="badge badge-primary">SaaS MRR</span>
               </div>
               <div>
-                <div style={{ fontSize: '32px', fontWeight: 900, color: '#0284c7' }}>
+                <div style={{ fontSize: '32px', fontWeight: 900, color: 'var(--primary)' }}>
                   $0/mo
                 </div>
-                <div style={{ fontSize: '13px', color: '#0369a1', marginTop: '4px', fontWeight: 700 }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 700 }}>
                   {isAr ? 'الإيراد الشهري المتكرر' : 'Monthly Recurring Revenue'}
                 </div>
               </div>
@@ -499,22 +546,22 @@ export const SuperAdminView: React.FC = () => {
                     width: '46px',
                     height: '46px',
                     borderRadius: '12px',
-                    background: '#f0f9ff',
-                    border: '1px solid #bae6fd',
+                    background: 'var(--primary-light)',
+                    border: '1px solid var(--primary-border)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Building2 size={24} color="#0284c7" />
+                  <Building2 size={24} color="var(--primary)" />
                 </div>
                 <span className="badge badge-success">Active B2B</span>
               </div>
               <div>
-                <div style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a' }}>
+                <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)' }}>
                   {organizations.length}
                 </div>
-                <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', fontWeight: 600 }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 600 }}>
                   Client Organizations
                 </div>
               </div>
@@ -528,22 +575,22 @@ export const SuperAdminView: React.FC = () => {
                     width: '46px',
                     height: '46px',
                     borderRadius: '12px',
-                    background: '#ecfdf5',
-                    border: '1px solid #a7f3d0',
+                    background: 'var(--success-bg)',
+                    border: '1px solid var(--success-border)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Users size={24} color="#10b981" />
+                  <Users size={24} color="var(--success)" />
                 </div>
                 <span className="badge badge-success">Verified</span>
               </div>
               <div>
-                <div style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a' }}>
+                <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)' }}>
                   {platformUsersList?.length || 0}
                 </div>
-                <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', fontWeight: 600 }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 600 }}>
                   Active Team Users
                 </div>
               </div>
@@ -557,14 +604,14 @@ export const SuperAdminView: React.FC = () => {
                     width: '46px',
                     height: '46px',
                     borderRadius: '12px',
-                    background: '#f5f3ff',
-                    border: '1px solid #ddd6fe',
+                    background: 'var(--purple-bg)',
+                    border: '1px solid var(--purple-border)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Server size={24} color="#7c3aed" />
+                  <Server size={24} color="var(--purple)" />
                 </div>
                 <span className="badge badge-purple">99.99%</span>
               </div>
@@ -581,17 +628,17 @@ export const SuperAdminView: React.FC = () => {
 
           {/* Quick Organizations Card preview */}
           <div className="card" style={{ padding: '24px' }}>
-            <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '16px' }}>
               Active Client Tenants
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
               {organizations.length === 0 ? (
-                <div style={{ gridColumn: '1 / -1', padding: '32px', textAlign: 'center', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
-                  <Building2 size={32} color="#94a3b8" style={{ margin: '0 auto 8px auto' }} />
-                  <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#0f172a' }}>
+                <div style={{ gridColumn: '1 / -1', padding: '32px', textAlign: 'center', background: 'var(--bg-subtle)', borderRadius: '12px', border: '1px dashed var(--border-light)' }}>
+                  <Building2 size={32} color="var(--text-muted)" style={{ margin: '0 auto 8px auto' }} />
+                  <div style={{ fontSize: '14.5px', fontWeight: 800, color: 'var(--text-main)' }}>
                     {isAr ? 'لا توجد مؤسسات بعد' : 'No Client Tenants Provisioned'}
                   </div>
-                  <div style={{ fontSize: '12.5px', color: '#64748b', marginTop: '4px', marginBottom: '14px' }}>
+                  <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '4px', marginBottom: '14px' }}>
                     {isAr ? 'انقر على الزر أدناه لإنشاء أول مؤسسة في المنصة' : 'Click below to provision the first client enterprise organization.'}
                   </div>
                   <button
@@ -611,8 +658,8 @@ export const SuperAdminView: React.FC = () => {
                   style={{
                     padding: '18px',
                     borderRadius: '12px',
-                    border: '1px solid #e2e8f0',
-                    background: '#f8fafc',
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--bg-subtle)',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
@@ -624,7 +671,7 @@ export const SuperAdminView: React.FC = () => {
                         width: '36px',
                         height: '36px',
                         borderRadius: '10px',
-                        background: org.logoUrl ? 'transparent' : '#0284c7',
+                        background: org.logoUrl ? 'transparent' : 'var(--primary)',
                         color: '#fff',
                         display: 'flex',
                         alignItems: 'center',
@@ -632,7 +679,7 @@ export const SuperAdminView: React.FC = () => {
                         fontWeight: 800,
                         fontSize: '16px',
                         overflow: 'hidden',
-                        border: org.logoUrl ? '1px solid #e2e8f0' : 'none',
+                        border: org.logoUrl ? '1px solid var(--border-light)' : 'none',
                       }}>
                         {org.logoUrl ? (
                           <img src={org.logoUrl} alt={org.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -641,8 +688,8 @@ export const SuperAdminView: React.FC = () => {
                         )}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>{org.name}</div>
-                        <div style={{ fontSize: '12px', color: '#64748b' }}>slug: /{org.slug}</div>
+                        <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-main)' }}>{org.name}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>slug: /{org.slug}</div>
                       </div>
                     </div>
                     <span className={`badge ${org.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}`}>
@@ -650,9 +697,9 @@ export const SuperAdminView: React.FC = () => {
                     </span>
                   </div>
 
-                  <div style={{ fontSize: '12.5px', color: '#475569', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
-                    <span>Admin: <strong>{org.adminEmail}</strong></span>
-                    <span>Members: <strong>{org.memberCount}</strong></span>
+                  <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-light)', paddingTop: '10px' }}>
+                    <span>Admin: <strong style={{ color: 'var(--text-main)' }}>{org.adminEmail}</strong></span>
+                    <span>Members: <strong style={{ color: 'var(--text-main)' }}>{org.memberCount}</strong></span>
                   </div>
                 </div>
               )))}
@@ -690,7 +737,7 @@ export const SuperAdminView: React.FC = () => {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <tr style={{ borderBottom: '1px solid var(--border-light)', color: 'var(--text-muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   <th style={{ padding: '12px 16px' }}>Organization</th>
                   <th style={{ padding: '12px 16px' }}>Admin Lead</th>
                   <th style={{ padding: '12px 16px' }}>Status</th>
@@ -707,20 +754,20 @@ export const SuperAdminView: React.FC = () => {
                         width: '56px',
                         height: '56px',
                         borderRadius: '16px',
-                        background: '#f0f9ff',
-                        border: '1px solid #bae6fd',
+                        background: 'var(--primary-light)',
+                        border: '1px solid var(--primary-border)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: '#0284c7',
+                        color: 'var(--primary)',
                         margin: '0 auto 14px auto',
                       }}>
                         <Building2 size={28} />
                       </div>
-                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)' }}>
                         {isAr ? 'لا توجد مؤسسات منشأة حتى الآن' : 'No Organizations Provisioned Yet'}
                       </div>
-                      <p style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', marginBottom: '18px', maxWidth: '420px', margin: '6px auto 18px auto' }}>
+                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', marginBottom: '18px', maxWidth: '420px', margin: '6px auto 18px auto' }}>
                         {isAr
                           ? 'بصفتك مالك المنصة، يمكنك إنشاء المؤسسات وتعيين المدراء وتزويدهم بحساباتهم.'
                           : 'As the Platform Owner, you can provision enterprise organizations, assign admins, and manage tenancy.'}
@@ -738,10 +785,10 @@ export const SuperAdminView: React.FC = () => {
                   </tr>
                 ) : (
                   filteredOrgs.map((org) => (
-                  <tr key={org.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.15s ease' }}>
+                  <tr key={org.id} style={{ borderBottom: '1px solid var(--border-subtle)', transition: 'background 0.15s ease' }}>
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: org.logoUrl ? 'transparent' : '#0284c7', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '14px', overflow: 'hidden', border: org.logoUrl ? '1px solid #e2e8f0' : 'none' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: org.logoUrl ? 'transparent' : 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '14px', overflow: 'hidden', border: org.logoUrl ? '1px solid var(--border-light)' : 'none' }}>
                           {org.logoUrl ? (
                             <img src={org.logoUrl} alt={org.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
@@ -749,24 +796,24 @@ export const SuperAdminView: React.FC = () => {
                           )}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, color: '#0f172a' }}>{org.name}</div>
-                          <div style={{ fontSize: '11.5px', color: '#94a3b8' }}>ID: {org.id.substring(0, 10)}...</div>
+                          <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{org.name}</div>
+                          <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>ID: {org.id.substring(0, 10)}...</div>
                         </div>
                       </div>
                     </td>
                     <td style={{ padding: '14px 16px' }}>
-                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{org.adminName}</div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>{org.adminEmail}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{org.adminName}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{org.adminEmail}</div>
                     </td>
                     <td style={{ padding: '14px 16px' }}>
                       <span className={`badge ${org.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}`}>
                         {org.status}
                       </span>
                     </td>
-                    <td style={{ padding: '14px 16px', fontWeight: 600, color: '#0f172a' }}>
+                    <td style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--text-main)' }}>
                       {org.memberCount}
                     </td>
-                    <td style={{ padding: '14px 16px', color: '#64748b', fontSize: '12.5px' }}>
+                    <td style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontSize: '12.5px' }}>
                       {org.createdAt}
                     </td>
                     <td style={{ padding: '14px 16px', textAlign: 'right' }}>
@@ -781,14 +828,14 @@ export const SuperAdminView: React.FC = () => {
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '5px',
-                            color: '#0284c7',
-                            borderColor: '#bae6fd',
-                            background: '#f0f9ff',
+                            color: 'var(--primary)',
+                            borderColor: 'var(--primary-border)',
+                            background: 'var(--primary-light)',
                             fontWeight: 700,
                           }}
                           title={isAr ? 'عرض أو تعيين كلمة مرور مدير المؤسسة' : 'Set or view admin password'}
                         >
-                          <Key size={13} color="#0284c7" />
+                          <Key size={13} color="var(--primary)" />
                           <span>{isAr ? 'كلمة المرور' : 'Set Password'}</span>
                         </button>
 
@@ -803,6 +850,30 @@ export const SuperAdminView: React.FC = () => {
                           }}
                         >
                           {org.status === 'ACTIVE' ? (isAr ? 'تعليق المؤسسة' : 'Suspend Org') : (isAr ? 'إعادة التفعيل' : 'Reactivate Org')}
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={deletingOrgId === org.id}
+                          onClick={() => handleDeleteOrg(org.id, org.name)}
+                          className="btn btn-sm btn-ghost"
+                          style={{
+                            fontSize: '11.5px',
+                            padding: '5px 10px',
+                            color: '#ef4444',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            background: 'rgba(239, 68, 68, 0.08)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontWeight: 700,
+                            cursor: deletingOrgId === org.id ? 'not-allowed' : 'pointer',
+                            opacity: deletingOrgId === org.id ? 0.6 : 1,
+                          }}
+                          title={isAr ? 'حذف المؤسسة نهائياً' : 'Delete Organization'}
+                        >
+                          <Trash2 size={13} color="#ef4444" />
+                          <span>{deletingOrgId === org.id ? (isAr ? 'جارِ الحذف...' : 'Deleting...') : (isAr ? 'حذف' : 'Delete')}</span>
                         </button>
                       </div>
                     </td>
@@ -841,7 +912,7 @@ export const SuperAdminView: React.FC = () => {
                       <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{admin.user?.fullName}</div>
                       <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{admin.user?.email}</div>
                     </td>
-                    <td style={{ padding: '14px 16px', fontWeight: 600, color: '#0284c7' }}>
+                    <td style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--primary)' }}>
                       {admin.organization?.name}
                     </td>
                     <td style={{ padding: '14px 16px' }}>
@@ -983,29 +1054,85 @@ export const SuperAdminView: React.FC = () => {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: isAr ? 'right' : 'left', fontSize: '13.5px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-light)', color: 'var(--text-muted)', fontSize: '12px' }}>
-                    <th style={{ padding: '12px 16px' }}>Email</th>
-                    <th style={{ padding: '12px 16px' }}>Organization</th>
-                    <th style={{ padding: '12px 16px' }}>Role</th>
-                    <th style={{ padding: '12px 16px' }}>Status</th>
-                    <th style={{ padding: '12px 16px' }}>Expires At</th>
+                    <th style={{ padding: '12px 16px' }}>{isAr ? 'البريد الإلكتروني' : 'Email'}</th>
+                    <th style={{ padding: '12px 16px' }}>{isAr ? 'المؤسسة' : 'Organization'}</th>
+                    <th style={{ padding: '12px 16px' }}>{isAr ? 'الدور' : 'Role'}</th>
+                    <th style={{ padding: '12px 16px' }}>{isAr ? 'الحالة' : 'Status'}</th>
+                    <th style={{ padding: '12px 16px' }}>{isAr ? 'تاريخ الانتهاء' : 'Expires At'}</th>
+                    <th style={{ padding: '12px 16px', textAlign: isAr ? 'left' : 'right' }}>{isAr ? 'الإجراءات' : 'Actions'}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {platformInvitationsList.map((inv: any) => (
-                    <tr key={inv.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '14px 16px', fontWeight: 600 }}>{inv.email}</td>
-                      <td style={{ padding: '14px 16px' }}>{inv.organization?.name}</td>
-                      <td style={{ padding: '14px 16px' }}>
-                        <span className="badge badge-primary">{inv.role}</span>
-                      </td>
-                      <td style={{ padding: '14px 16px' }}>
-                        <span className="badge badge-warning">{inv.status}</span>
-                      </td>
-                      <td style={{ padding: '14px 16px', color: 'var(--text-muted)' }}>
-                        {new Date(inv.expiresAt).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
+                  {platformInvitationsList.map((inv: any) => {
+                    const isAccepted = inv.status === 'ACCEPTED' || inv.status === 'ACTIVE';
+                    const isPending = inv.status === 'PENDING';
+                    const isExpired = inv.status === 'EXPIRED';
+
+                    return (
+                      <tr key={inv.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '14px 16px', fontWeight: 600 }}>{inv.email}</td>
+                        <td style={{ padding: '14px 16px' }}>{inv.organization?.name}</td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <span className="badge badge-primary">{inv.role}</span>
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <span
+                            className={`badge ${
+                              isAccepted ? 'badge-success' : isExpired ? 'badge-danger' : 'badge-warning'
+                            }`}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {isAccepted ? (
+                              <>
+                                <Check size={12} />
+                                <span>{isAr ? 'مفعل (نشط)' : 'Active (Accepted)'}</span>
+                              </>
+                            ) : isPending ? (
+                              <>
+                                <Clock size={12} />
+                                <span>{isAr ? 'في انتظار التفعيل' : 'Pending Activation'}</span>
+                              </>
+                            ) : (
+                              <span>{inv.status}</span>
+                            )}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 16px', color: 'var(--text-muted)' }}>
+                          {new Date(inv.expiresAt).toLocaleDateString()}
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: isAr ? 'left' : 'right' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                            {isPending && (
+                              <button
+                                type="button"
+                                onClick={() => handleResendInvitation(inv.id)}
+                                className="btn btn-secondary"
+                                style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                title={isAr ? 'نسخ رابط التفعيل وإعادة إرسال الإيميل' : 'Copy activation link & resend email'}
+                              >
+                                <Copy size={13} />
+                                <span>{isAr ? 'نسخ رابط التفعيل' : 'Copy Link'}</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRevokeInvitation(inv.id)}
+                              className="btn btn-danger"
+                              style={{ padding: '6px 10px', fontSize: '12px' }}
+                              title={isAr ? 'إلغاء الدعوة' : 'Revoke invitation'}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1042,7 +1169,7 @@ export const SuperAdminView: React.FC = () => {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0284c7' }} />
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }} />
                     <div>
                       <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{log.actor?.fullName || 'Platform Owner'} </span>
                       <span style={{ color: 'var(--text-secondary)' }}>performed </span>
@@ -1051,7 +1178,7 @@ export const SuperAdminView: React.FC = () => {
                       </span>
                       <span style={{ color: 'var(--text-secondary)' }}> on {log.entityType}</span>
                       {log.organization && (
-                        <span style={{ color: '#0284c7', fontWeight: 600 }}> ({log.organization.name})</span>
+                        <span style={{ color: 'var(--primary)', fontWeight: 600 }}> ({log.organization.name})</span>
                       )}
                     </div>
                   </div>
@@ -1069,15 +1196,15 @@ export const SuperAdminView: React.FC = () => {
       {/* Tab 7: System Settings */}
       {superAdminTab === 'settings' && (
         <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>System & Governance Settings</h2>
+          <h2 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)' }}>System & Governance Settings</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '13px' }}>
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>Multi-Tenancy Scoping Model</div>
-              <div style={{ color: '#64748b' }}>Shared PostgreSQL Schema with strict organizationId foreign key constraints and server-side RBAC scoping (SRS FR-TEN-001/002).</div>
+            <div style={{ padding: '16px', background: 'var(--bg-subtle)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
+              <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>Multi-Tenancy Scoping Model</div>
+              <div style={{ color: 'var(--text-secondary)' }}>Shared PostgreSQL Schema with strict organizationId foreign key constraints and server-side RBAC scoping (SRS FR-TEN-001/002).</div>
             </div>
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>Authentication Policy</div>
-              <div style={{ color: '#64748b' }}>Private B2B SaaS (Public Signup Disabled). One-time cryptographic tokenHash invitation flow with 7-day TTL (SRS FR-AUTH-001).</div>
+            <div style={{ padding: '16px', background: 'var(--bg-subtle)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
+              <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>Authentication Policy</div>
+              <div style={{ color: 'var(--text-secondary)' }}>Private B2B SaaS (Public Signup Disabled). One-time cryptographic tokenHash invitation flow with 7-day TTL (SRS FR-AUTH-001).</div>
             </div>
           </div>
         </div>
@@ -1102,10 +1229,10 @@ export const SuperAdminView: React.FC = () => {
           <div className="card" style={{
             width: '460px',
             maxWidth: '95%',
-            background: '#ffffff',
+            background: 'var(--bg-surface)',
             padding: '28px',
             borderRadius: '16px',
-            boxShadow: '0 20px 45px rgba(15, 23, 42, 0.18)',
+            boxShadow: 'var(--shadow-xl)',
             position: 'relative',
           }}>
             <button
@@ -1121,16 +1248,16 @@ export const SuperAdminView: React.FC = () => {
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                color: '#64748b',
+                color: 'var(--text-muted)',
               }}
             >
               <X size={18} />
             </button>
 
-            <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
               Provision New Organization
             </h2>
-            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
               Create an enterprise tenant and issue an invitation to its designated Org Admin.
             </p>
 
@@ -1226,7 +1353,7 @@ export const SuperAdminView: React.FC = () => {
             ) : (
               <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#0f172a', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                     Organization Name *
                   </label>
                   <input
@@ -1241,7 +1368,7 @@ export const SuperAdminView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#0f172a', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                     Designated Admin Full Name *
                   </label>
                   <input
@@ -1256,7 +1383,7 @@ export const SuperAdminView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#0f172a', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                     Designated Admin Work Email *
                   </label>
                   <input
@@ -1268,7 +1395,7 @@ export const SuperAdminView: React.FC = () => {
                     className="input-field"
                     style={{ height: '40px' }}
                   />
-                  <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px' }}>
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                     {isAr
                       ? '📩 سيتم إرسال دعوة تفعيل رسمية إلى هذا البريد. لن يتمكن المدير من الدخول إلا بعد قبولها وتعيين كلمة مروره.'
                       : '📩 An activation invitation will be sent to this email. The admin can only log in after accepting and setting their password.'}
@@ -1276,7 +1403,7 @@ export const SuperAdminView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#0f172a', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                     Initial Admin Password *
                   </label>
                   <div style={{ position: 'relative' }}>
@@ -1291,12 +1418,12 @@ export const SuperAdminView: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowNewOrgPassword(!showNewOrgPassword)}
-                      style={{ position: 'absolute', right: '10px', top: '10px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                      style={{ position: 'absolute', right: '10px', top: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
                     >
                       {showNewOrgPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
-                  <span style={{ fontSize: '11px', color: '#64748b', marginTop: '3px', display: 'block' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '3px', display: 'block' }}>
                     Default auto-generated: <code>{orgName ? `${orgName.replace(/\s+/g, '')}#Admin2026!` : 'OrgName#Admin2026!'}</code>
                   </span>
                 </div>
@@ -1367,7 +1494,7 @@ export const SuperAdminView: React.FC = () => {
             </button>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f0f9ff', border: '1px solid #bae6fd', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0284c7' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--primary-light)', border: '1px solid var(--primary-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
                 <Key size={18} />
               </div>
               <div>
@@ -1393,7 +1520,7 @@ export const SuperAdminView: React.FC = () => {
                       setEditingPassword(generated);
                       setShowEditingPassword(true);
                     }}
-                    style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
                   >
                     🎲 {isAr ? 'توليد كلمة سر قوية' : 'Generate Strong'}
                   </button>
@@ -1443,7 +1570,7 @@ export const SuperAdminView: React.FC = () => {
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    color: copiedModalKey === 'email' ? '#10b981' : '#0284c7',
+                    color: copiedModalKey === 'email' ? 'var(--success)' : 'var(--primary)',
                     fontWeight: 800,
                     fontSize: '12px',
                   }}

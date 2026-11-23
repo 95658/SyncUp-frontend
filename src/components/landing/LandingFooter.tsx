@@ -168,7 +168,7 @@ export function LandingFooter({ onRequestAccess }: LandingFooterProps) {
                   height: '36px',
                   borderRadius: '10px',
                   background: theme === 'dark'
-                    ? 'linear-gradient(135deg, #170E13 0%, #2A1420 100%)'
+                    ? 'linear-gradient(135deg, #11151F 0%, #181E2B 100%)'
                     : 'linear-gradient(135deg, #ffffff 0%, #fff1f2 100%)',
                   border: theme === 'dark'
                     ? '1px solid rgba(225, 29, 72, 0.35)'

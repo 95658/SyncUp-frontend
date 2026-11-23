@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Sparkles, CheckCircle2, Lock, User, ArrowRight, Shield } from 'lucide-react';
 import { useUIStore } from '@/store/uiStore';
 import { SyncUpLogo } from '@/components/shared/SyncUpLogo';
+import { authApi } from '@/lib/api/auth';
 
 export default function AcceptInvitationPage() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function AcceptInvitationPage() {
     }
   }, []);
 
-  const handleAccept = (e: React.FormEvent) => {
+  const handleAccept = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -55,13 +56,22 @@ export default function AcceptInvitationPage() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await authApi.acceptInvitation({
+        token,
+        fullName: cleanName,
+        password,
+      });
+
       setSuccess(true);
       setTimeout(() => {
-        router.push('/auth/login');
+        router.push('/workspace');
       }, 1200);
-    }, 800);
+    } catch (err: any) {
+      setError(err.message || 'Failed to accept invitation. The invitation may be invalid or expired.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -81,7 +91,7 @@ export default function AcceptInvitationPage() {
           height: '56px',
           borderRadius: '16px',
           background: isDark
-            ? 'linear-gradient(135deg, #170E13 0%, #2A1420 100%)'
+            ? 'linear-gradient(135deg, #11151F 0%, #181E2B 100%)'
             : 'linear-gradient(135deg, #ffffff 0%, #fff1f2 100%)',
           border: isDark
             ? '1.5px solid rgba(225, 29, 72, 0.35)'

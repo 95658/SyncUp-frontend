@@ -155,7 +155,7 @@ export const Sidebar: React.FC = () => {
                 color: 'var(--text-main)',
               }}
             >
-              Sync<span style={{ color: isPlatformOwner ? '#0284c7' : 'var(--primary)' }}>Up</span>
+              Sync<span style={{ color: 'var(--primary)' }}>Up</span>
             </div>
           </div>
         </div>
@@ -165,9 +165,9 @@ export const Sidebar: React.FC = () => {
           style={{
             fontSize: '10px',
             padding: '2px 7px',
-            background: isPlatformOwner ? 'rgba(2, 132, 199, 0.1)' : 'var(--primary-light)',
-            color: isPlatformOwner ? '#0284c7' : 'var(--primary)',
-            border: isPlatformOwner ? '1px solid #bae6fd' : '1px solid var(--primary-border)',
+            background: 'var(--primary-light)',
+            color: 'var(--primary)',
+            border: '1px solid var(--primary-border)',
             fontWeight: 800,
           }}
         >
@@ -191,12 +191,12 @@ export const Sidebar: React.FC = () => {
               gap: '8px',
               fontSize: '11px',
               fontWeight: 800,
-              color: '#0284c7',
+              color: 'var(--primary)',
               letterSpacing: '0.04em',
               textTransform: 'uppercase',
             }}
           >
-            <Shield size={13} color="#0284c7" />
+            <Shield size={13} color="var(--primary)" />
             <span>{isAr ? 'وضع مالك المنصة' : 'Platform Owner Mode'}</span>
           </div>
           <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '3px', lineHeight: 1.3 }}>
@@ -331,9 +331,9 @@ export const Sidebar: React.FC = () => {
                     justifyContent: 'space-between',
                     padding: '10px 12px',
                     borderRadius: '9px',
-                    border: 'none',
-                    background: isActive ? 'rgba(2, 132, 199, 0.12)' : 'transparent',
-                    color: isActive ? '#0284c7' : 'var(--text-secondary)',
+                    border: isActive ? '1px solid var(--primary-border)' : '1px solid transparent',
+                    background: isActive ? 'var(--primary-light)' : 'transparent',
+                    color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
                     fontWeight: isActive ? 700 : 500,
                     fontSize: '13.5px',
                     cursor: 'pointer',
@@ -343,8 +343,8 @@ export const Sidebar: React.FC = () => {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Icon size={17} strokeWidth={isActive ? 2.4 : 1.8} color={isActive ? '#0284c7' : 'var(--text-muted)'} />
-                    <span>{item.label}</span>
+                    <Icon size={17} strokeWidth={isActive ? 2.4 : 1.8} color={isActive ? 'var(--primary)' : 'var(--text-muted)'} />
+                    <span style={{ color: isActive ? '#FFFFFF' : 'inherit' }}>{item.label}</span>
                   </div>
 
                   {'badge' in item && item.badge && (
@@ -370,6 +370,7 @@ export const Sidebar: React.FC = () => {
                       justifyContent: 'space-between',
                       borderRadius: '9px',
                       background: isActive ? 'var(--primary-light)' : 'transparent',
+                      border: isActive ? '1px solid var(--primary-border)' : '1px solid transparent',
                     }}
                   >
                     <button
@@ -391,7 +392,7 @@ export const Sidebar: React.FC = () => {
                         padding: '9px 12px',
                         border: 'none',
                         background: 'transparent',
-                        color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                        color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
                         fontWeight: isActive ? 700 : 500,
                         fontSize: '13.5px',
                         cursor: 'pointer',
@@ -400,7 +401,7 @@ export const Sidebar: React.FC = () => {
                       }}
                     >
                       <Icon size={18} strokeWidth={isActive ? 2.3 : 1.8} color={isActive ? 'var(--primary)' : 'var(--text-muted)'} />
-                      <span>{item.label}</span>
+                      <span style={{ color: isActive ? '#FFFFFF' : 'inherit' }}>{item.label}</span>
                     </button>
 
                     {/* Requirement 20: Collapse / Expand icon beside Projects */}
@@ -528,9 +529,7 @@ export const Sidebar: React.FC = () => {
               style={{
                 width: '34px',
                 height: '34px',
-                background: isPlatformOwner
-                  ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'
-                  : 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+                background: 'var(--primary-gradient)',
                 fontSize: '12.5px',
                 fontWeight: 800,
                 flexShrink: 0,
@@ -556,7 +555,7 @@ export const Sidebar: React.FC = () => {
             <div
               style={{
                 fontSize: '11px',
-                color: isPlatformOwner ? '#0284c7' : 'var(--text-muted)',
+                color: isPlatformOwner ? 'var(--primary)' : 'var(--text-muted)',
                 fontWeight: 600,
                 whiteSpace: 'nowrap',
                 textOverflow: 'ellipsis',

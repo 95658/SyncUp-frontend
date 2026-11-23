@@ -26,9 +26,11 @@ import { UserProfileModal } from '@/components/ui/UserProfileModal';
 import { NotificationsDrawer } from '@/components/notifications/NotificationsDrawer';
 import { NotificationDetailModal } from '@/components/notifications/NotificationDetailModal';
 import { SprintEstimationModal } from '@/components/projects/SprintEstimationModal';
+import { usePushNotifications } from '@/hooks/notifications/usePushNotifications';
 import { Building2, ShieldAlert } from 'lucide-react';
 
 export default function WorkspacePage() {
+  usePushNotifications();
   const router = useRouter();
   const { currentView, setCurrentView, syncFromBackend, organizations } = useWorkspaceStore();
   const { currentUser, activeRole, isAuthenticated, checkAuth } = useAuthStore();

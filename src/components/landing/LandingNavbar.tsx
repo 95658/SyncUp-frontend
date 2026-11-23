@@ -41,7 +41,7 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
         zIndex: 100,
         width: '100%',
         backdropFilter: 'blur(20px)',
-        background: theme === 'dark' ? 'rgba(13, 8, 10, 0.88)' : 'rgba(255, 255, 255, 0.88)',
+        background: theme === 'dark' ? 'rgba(11, 14, 20, 0.88)' : 'rgba(255, 255, 255, 0.88)',
         borderBottom: '1px solid var(--border-light)',
         transition: 'background-color 0.25s ease, border-color 0.25s ease',
       }}
@@ -75,7 +75,7 @@ export function LandingNavbar({ onRequestAccess }: LandingNavbarProps) {
               height: '42px',
               borderRadius: '12px',
               background: theme === 'dark'
-                ? 'linear-gradient(135deg, #170E13 0%, #2A1420 100%)'
+                ? 'linear-gradient(135deg, #11151F 0%, #181E2B 100%)'
                 : 'linear-gradient(135deg, #ffffff 0%, #fff1f2 100%)',
               border: theme === 'dark'
                 ? '1px solid rgba(225, 29, 72, 0.35)'

@@ -110,6 +110,7 @@ export const Header: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        gap: '28px',
         padding: '0 24px',
         position: 'sticky',
         top: 0,
@@ -118,7 +119,7 @@ export const Header: React.FC = () => {
       }}
     >
       {/* Search Input & Interactive Dropdown (Requirement 3) */}
-      <div ref={searchContainerRef} style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, maxWidth: '440px', position: 'relative' }}>
+      <div ref={searchContainerRef} style={{ display: 'flex', alignItems: 'center', flex: '0 1 360px', maxWidth: '360px', position: 'relative' }}>
         <div
           style={{
             position: 'relative',
@@ -152,7 +153,7 @@ export const Header: React.FC = () => {
               outline: 'none',
               color: 'var(--text-main)',
               transition: 'all 0.15s ease',
-              boxShadow: isSearchOpen ? '0 0 0 3px rgba(37, 99, 235, 0.12)' : 'none',
+              boxShadow: isSearchOpen ? '0 0 0 3px rgba(225, 29, 72, 0.2)' : 'none',
             }}
           />
           <span
@@ -248,7 +249,7 @@ export const Header: React.FC = () => {
                   className="btn-ghost"
                   style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '8px', textAlign: 'left', width: '100%', fontSize: '13px' }}
                 >
-                  <FolderOpen size={16} color="#0284c7" />
+                  <FolderOpen size={16} color="var(--primary)" />
                   <span style={{ flex: 1, color: 'var(--text-main)', fontWeight: 600 }}>{isAr ? 'لوحة المشاريع والسبرنت' : 'Projects & Sprints Board'}</span>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Projects</span>
                 </button>
@@ -352,7 +353,7 @@ export const Header: React.FC = () => {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <FolderOpen size={14} color="#0284c7" />
+                      <FolderOpen size={14} color="var(--primary)" />
                       <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
                         {proj.name}
                       </span>
@@ -412,16 +413,20 @@ export const Header: React.FC = () => {
       </div>
 
       {/* Right Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
         {/* Quick Add Action */}
         {isPlatformOwner ? (
           <button
             type="button"
             className="btn btn-primary"
             style={{
-              padding: '7px 14px',
+              padding: '7px 16px',
               fontSize: '12.5px',
-              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+              borderRadius: '9999px',
+              background: 'var(--primary-gradient)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
             onClick={() => setCreateOrgModalOpen(true)}
           >
@@ -461,16 +466,16 @@ export const Header: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '5px 10px',
-            background: isPlatformOwner ? 'rgba(2, 132, 199, 0.1)' : 'var(--bg-app)',
+            padding: '5px 12px',
+            background: isPlatformOwner ? 'var(--primary-light)' : 'var(--bg-subtle)',
             borderRadius: '9999px',
-            border: isPlatformOwner ? '1px solid #bae6fd' : '1px solid var(--border-light)',
+            border: isPlatformOwner ? '1px solid var(--primary-border)' : '1px solid var(--border-light)',
             fontSize: '12px',
             fontWeight: 600,
-            color: 'var(--text-secondary)',
+            color: '#FFFFFF',
           }}
         >
-          <Shield size={13} color={isPlatformOwner ? '#0284c7' : 'var(--primary)'} />
+          <Shield size={13} color="var(--primary)" />
           {isPlatformOwner ? (
             <select
               value={activeRole}
@@ -487,19 +492,19 @@ export const Header: React.FC = () => {
                 background: 'transparent',
                 border: 'none',
                 fontWeight: 700,
-                fontSize: '11.5px',
-                color: '#0284c7',
+                fontSize: '12px',
+                color: '#FFFFFF',
                 cursor: 'pointer',
                 outline: 'none',
-                paddingRight: '22px',
-                paddingLeft: '4px',
+                paddingRight: '18px',
+                paddingLeft: '2px',
                 backgroundPosition: isAr ? 'left 2px center' : 'right 4px center',
                 backgroundSize: '12px 12px',
               }}
             >
-              <option value="PLATFORM_OWNER">Platform Owner</option>
-              <option value="ORG_ADMIN">Org Admin</option>
-              <option value="ORG_MEMBER">Team Member</option>
+              <option value="PLATFORM_OWNER" style={{ background: '#0F131D', color: '#FFFFFF' }}>Platform Owner</option>
+              <option value="ORG_ADMIN" style={{ background: '#0F131D', color: '#FFFFFF' }}>Org Admin</option>
+              <option value="ORG_MEMBER" style={{ background: '#0F131D', color: '#FFFFFF' }}>Team Member</option>
             </select>
           ) : (
             <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '11.5px' }}>
@@ -642,12 +647,10 @@ export const Header: React.FC = () => {
               style={{
                 width: '34px',
                 height: '34px',
-                background: isPlatformOwner
-                  ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'
-                  : 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+                background: 'var(--primary-gradient)',
                 fontSize: '12px',
                 fontWeight: 800,
-                boxShadow: isPlatformOwner ? '0 2px 6px rgba(2, 132, 199, 0.25)' : '0 2px 6px rgba(37, 99, 235, 0.25)',
+                boxShadow: 'var(--primary-glow)',
               }}
             >
               {currentUser?.name ? currentUser.name.split(' ').map((n) => n[0]).join('').substring(0, 2) : 'U'}

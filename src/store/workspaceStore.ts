@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Task, Project, OrganizationMember, Meeting, ActivityItem, Organization, TaskStatus, Sprint, Team } from '@/types';
-import { superAdminApi, tasksApi, organizationsApi, projectsApi } from '@/lib/api';
+import { superAdminApi, tasksApi, organizationsApi, projectsApi, teamsApi } from '@/lib/api';
 
 export type SuperAdminTab = 'overview' | 'organizations' | 'administrators' | 'users' | 'invitations' | 'audit-logs' | 'settings';
 
@@ -51,6 +51,7 @@ interface WorkspaceState {
   createOrganization: (data: { name: string; slug?: string; industry?: string; companySize?: string; adminName?: string; adminEmail?: string; adminPassword?: string }) => Promise<Organization>;
   setOrgAdminPassword: (orgId: string, newPassword: string) => Promise<void>;
   toggleOrgStatus: (orgId: string, currentStatus: string) => Promise<void>;
+  deleteOrganization: (orgId: string) => Promise<void>;
   
   // Member Management
   addNewMember: (memberData: any) => Promise<void>;
@@ -131,8 +132,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   isCreateProjectModalOpen: false,
   isLoading: false,
 
-  // Clean initial data - loaded from persistent storage if user created them
-  organizations: loadFromStorage<Organization[]>('syncup_orgs', []),
+  // Initial clean data
+  organizations: [],
   projects: [],
   tasks: [],
   sprints: [],
@@ -168,6 +169,11 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   setSelectedProjectId: (id) => set({ selectedProjectId: id }),
 
   setActiveOrgId: (orgId) => {
+    if (!orgId) {
+      if (typeof window !== 'undefined') localStorage.removeItem('syncup_active_org_id');
+      set({ activeOrgId: '' });
+      return;
+    }
     if (typeof window !== 'undefined') {
       localStorage.setItem('syncup_active_org_id', orgId);
     }
@@ -245,16 +251,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     saveToStorage(`syncup_projects_${newOrg.id}`, []);
     saveToStorage(`syncup_tasks_${newOrg.id}`, []);
     saveToStorage(`syncup_sprints_${newOrg.id}`, []);
-    const initialOrgTeams: Team[] = [
-      { id: `team-core-${newOrg.id}`, organizationId: newOrg.id, name: 'Core Engineering', description: 'Primary software engineering and architecture team.', color: '#2563eb', createdAt: 'Today' },
-      { id: `team-qa-${newOrg.id}`, organizationId: newOrg.id, name: 'Quality Assurance & Testing', description: 'QA team responsible for sprint verification and staging sign-off.', color: '#10b981', createdAt: 'Today' },
-    ];
-    saveToStorage(`syncup_teams_${newOrg.id}`, initialOrgTeams);
+    saveToStorage(`syncup_teams_${newOrg.id}`, []);
 
     set({
       organizations: updatedOrgs,
       activeOrgId: newOrg.id,
-      teams: initialOrgTeams,
+      teams: [],
       adminAnalytics: {
         ...get().adminAnalytics,
         totalOrganizations: updatedOrgs.length,
@@ -676,6 +678,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
   loadOrgData: async (orgId: string) => {
     if (!orgId) return;
+    const orgs = get().organizations;
+    if (orgs.length > 0 && !orgs.some((o) => o.id === orgId)) {
+      return;
+    }
 
     try {
       // 1. Load real projects
@@ -730,41 +736,41 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         },
         organizationId: m.organizationId,
         role: m.role,
-        team: m.team || 'Core Engineering',
+        team: m.team || undefined,
         status: m.status,
         isOnline: true,
         joinedAt: new Date(m.joinedAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       }));
 
-      // Merge with persistent local storage
+      // 4. Load real teams from backend API
+      const liveTeams = await teamsApi.getTeams(orgId).catch(() => []);
+      const formattedTeams: Team[] = (liveTeams || []).map((t: any) => ({
+        id: t.id,
+        organizationId: t.organizationId || orgId,
+        name: t.name,
+        description: t.description || '',
+        color: t.color || '#2563eb',
+        leadId: t.leadId,
+        leadName: t.lead?.fullName,
+        projectIds: (t.projects || []).map((p: any) => p.projectId || p.id),
+        createdAt: t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Today',
+      }));
+
+      // Merge with persistent local storage, purging any legacy mock teams
       const localProjects = loadFromStorage<Project[]>(`syncup_projects_${orgId}`, []);
       const localTasks = loadFromStorage<Task[]>(`syncup_tasks_${orgId}`, []);
       const localMembers = loadFromStorage<OrganizationMember[]>(`syncup_members_${orgId}`, []);
       const localSprints = loadFromStorage<Sprint[]>(`syncup_sprints_${orgId}`, []);
-
-      const defaultOrgTeams: Team[] = [
-        {
-          id: `team-core-${orgId}`,
-          organizationId: orgId,
-          name: 'Core Engineering',
-          description: 'Primary software engineering and architecture team.',
-          color: '#2563eb',
-          createdAt: 'Today',
-        },
-        {
-          id: `team-qa-${orgId}`,
-          organizationId: orgId,
-          name: 'Quality Assurance & Testing',
-          description: 'QA team responsible for sprint verification and staging sign-off.',
-          color: '#10b981',
-          createdAt: 'Today',
-        },
-      ];
-      const localTeams = loadFromStorage<Team[]>(`syncup_teams_${orgId}`, defaultOrgTeams);
+      const localTeams = loadFromStorage<Team[]>(`syncup_teams_${orgId}`, []).filter(
+        (t) => !t.id.startsWith('team-core-') && !t.id.startsWith('team-qa-') && t.name !== 'Core Engineering' && t.name !== 'Quality Assurance & Testing'
+      );
 
       const mergedProjects = [...formattedProjects, ...localProjects.filter((lp) => !formattedProjects.some((fp) => fp.id === lp.id))];
       const mergedTasks = [...formattedTasks, ...localTasks.filter((lt) => !formattedTasks.some((ft) => ft.id === lt.id))];
       const mergedMembers = [...formattedMembers, ...localMembers.filter((lm) => !formattedMembers.some((fm) => fm.id === lm.id))];
+      const mergedTeams = [...formattedTeams, ...localTeams.filter((lt) => !formattedTeams.some((ft) => ft.id === lt.id))];
+
+      saveToStorage(`syncup_teams_${orgId}`, mergedTeams);
 
       const activeProjectId = get().selectedProjectId || (mergedProjects.length > 0 ? mergedProjects[0].id : null);
 
@@ -774,7 +780,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         tasks: mergedTasks,
         members: mergedMembers,
         sprints: localSprints,
-        teams: localTeams,
+        teams: mergedTeams,
       });
     } catch (err) {
       console.warn('Failed to load organization data:', err);
@@ -952,5 +958,55 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     );
     saveToStorage('syncup_orgs', updated);
     set({ organizations: updated });
+  },
+
+  deleteOrganization: async (orgId) => {
+    const prevOrgs = get().organizations;
+    const updated = prevOrgs.filter((o) => o.id !== orgId);
+    saveToStorage('syncup_orgs', updated);
+
+    const currentActive = get().activeOrgId;
+    let nextActive = currentActive;
+    if (currentActive === orgId) {
+      nextActive = updated[0]?.id || '';
+      if (typeof window !== 'undefined') {
+        if (nextActive) {
+          localStorage.setItem('syncup_active_org_id', nextActive);
+        } else {
+          localStorage.removeItem('syncup_active_org_id');
+        }
+      }
+    }
+
+    set({
+      organizations: updated,
+      activeOrgId: nextActive,
+      administratorsList: get().administratorsList.filter(
+        (a) => a.organizationId !== orgId && a.organization?.id !== orgId
+      ),
+      platformUsersList: get().platformUsersList.filter(
+        (u) => !u.orgMemberships?.some((m: any) => m.organizationId === orgId || m.organization?.id === orgId)
+      ),
+      platformInvitationsList: get().platformInvitationsList.filter(
+        (i: any) => i.organizationId !== orgId && i.organization?.id !== orgId
+      ),
+      adminAnalytics: {
+        ...get().adminAnalytics,
+        totalOrganizations: updated.length,
+        activeOrganizations: updated.filter((o) => o.status === 'ACTIVE').length,
+      },
+    });
+
+    try {
+      await superAdminApi.deleteOrganization(orgId);
+    } catch (err) {
+      set({ organizations: prevOrgs });
+      saveToStorage('syncup_orgs', prevOrgs);
+      throw err;
+    }
+
+    if (nextActive && nextActive !== currentActive) {
+      await get().loadOrgData(nextActive);
+    }
   },
 }));

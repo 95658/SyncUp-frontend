@@ -893,9 +893,57 @@ export const MembersView: React.FC = () => {
             )}
           </div>
 
-          {/* Teams Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
-            {teams.map((team) => {
+          {/* Teams Grid or Empty State */}
+          {teams.length === 0 ? (
+            <div
+              className="card"
+              style={{
+                textAlign: 'center',
+                padding: '48px 24px',
+                background: 'var(--bg-app)',
+                borderRadius: '12px',
+                border: '1px dashed var(--border-light)',
+              }}
+            >
+              <div
+                style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '12px',
+                  background: 'var(--primary-light)',
+                  border: '1px solid var(--primary-border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 14px auto',
+                  color: 'var(--primary)',
+                }}
+              >
+                <Layers size={22} />
+              </div>
+              <h4 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>
+                {isAr ? 'لم يتم إنشاء فرق بعد' : 'No teams created yet'}
+              </h4>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '380px', margin: '0 auto 18px auto' }}>
+                {isAr
+                  ? 'قسّم موظفي مؤسستك لفرق عمل متخصصة وعيّن قادة للمشاريع والمهام.'
+                  : 'Organize your organization members into functional squads, departments, and project teams.'}
+              </p>
+              {isOrgOwner && (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={openCreateTeamModal}
+                  style={{ padding: '8px 18px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Plus size={15} />
+                  <span>{isAr ? 'إنشاء أول فريق' : 'Create First Team'}</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
+              {teams.map((team) => {
               const teamMembers = members.filter((m) => m.team === team.name);
               const teamProjects = projects.filter((p) => team.projectIds?.includes(p.id));
               const leadMember = members.find((m) => m.id === team.leadId || m.userId === team.leadId);
@@ -1105,7 +1153,8 @@ export const MembersView: React.FC = () => {
               );
             })}
           </div>
-        </div>
+        )}
+      </div>
       )}
 
       {/* ─── TAB 3: TEAM QUALITY & KPIS ─────────────────────────────────── */}

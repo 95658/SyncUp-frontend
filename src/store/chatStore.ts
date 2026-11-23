@@ -35,9 +35,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const existingSocket = get().socket;
     if (existingSocket && existingSocket.connected) return;
 
-    const wsUrl = process.env.NEXT_PUBLIC_API_URL
-      ? process.env.NEXT_PUBLIC_API_URL.replace('/api/v1', '')
-      : 'http://localhost:4000';
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL ||
+      (process.env.NEXT_PUBLIC_API_URL
+        ? process.env.NEXT_PUBLIC_API_URL.replace('/api/v1', '')
+        : (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+            ? window.location.origin
+            : 'http://localhost:4000'));
 
     const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('syncup_access_token') : null);
 

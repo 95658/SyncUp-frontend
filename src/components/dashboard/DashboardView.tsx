@@ -90,13 +90,13 @@ export const DashboardView: React.FC = () => {
             alignItems: 'center',
             gap: '6px',
             padding: '4px 12px',
-            background: '#eff6ff',
-            border: '1px solid #bfdbfe',
+            background: 'var(--primary-light)',
+            border: '1px solid var(--primary-border)',
             borderRadius: '9999px',
             marginBottom: '10px',
           }}>
-            <Sparkles size={13} color="#2563eb" />
-            <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#1d4ed8', letterSpacing: '0.02em' }}>
+            <Sparkles size={13} color="var(--primary)" />
+            <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.02em' }}>
               {currentOrg.name} Workspace Active
             </span>
           </div>
@@ -120,7 +120,7 @@ export const DashboardView: React.FC = () => {
               return `${greeting}, ${name} 👋`;
             })()}
           </h1>
-          <p style={{ fontSize: '14.5px', color: '#64748b', fontWeight: 500 }}>
+          <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', fontWeight: 500 }}>
             {isAr
               ? `إليك ملخص الأداء اليومي وسرعة إنجاز المهام في مؤسسة ${currentOrg.name}.`
               : `Here is your daily pulse, team progress, and upcoming deliverables in ${currentOrg.name}.`}
@@ -132,15 +132,15 @@ export const DashboardView: React.FC = () => {
           alignItems: 'center',
           gap: '10px',
           padding: '8px 16px',
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-light)',
           borderRadius: '10px',
           fontSize: '13px',
-          color: '#475569',
+          color: 'var(--text-secondary)',
           fontWeight: 600,
-          boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
+          boxShadow: 'var(--shadow-xs)',
         }}>
-          <Calendar size={15} color="#2563eb" />
+          <Calendar size={15} color="var(--primary)" />
           <span>{todayDate}</span>
         </div>
       </div>
@@ -158,23 +158,23 @@ export const DashboardView: React.FC = () => {
               width: '46px',
               height: '46px',
               borderRadius: '12px',
-              background: '#eff6ff',
-              border: '1px solid #bfdbfe',
+              background: 'var(--primary-light)',
+              border: '1px solid var(--primary-border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              <CheckCircle2 size={24} color="#2563eb" />
+              <CheckCircle2 size={24} color="var(--primary)" />
             </div>
             <span className="badge badge-primary">
               {openTasks.length > 0 ? `${openTasks.length} active` : '0 active'}
             </span>
           </div>
           <div>
-            <div style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
+            <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1 }}>
               {openTasks.length}
             </div>
-            <div style={{ fontSize: '13.5px', color: '#64748b', marginTop: '6px', fontWeight: 600 }}>
+            <div style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginTop: '6px', fontWeight: 600 }}>
               Open Tasks
             </div>
           </div>
@@ -187,8 +187,8 @@ export const DashboardView: React.FC = () => {
               width: '46px',
               height: '46px',
               borderRadius: '12px',
-              background: '#fffbeb',
-              border: '1px solid #fde68a',
+              background: 'rgba(217, 119, 6, 0.12)',
+              border: '1px solid rgba(217, 119, 6, 0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -200,10 +200,10 @@ export const DashboardView: React.FC = () => {
             </span>
           </div>
           <div>
-            <div style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
+            <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1 }}>
               {inReviewTasks.length}
             </div>
-            <div style={{ fontSize: '13.5px', color: '#64748b', marginTop: '6px', fontWeight: 600 }}>
+            <div style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginTop: '6px', fontWeight: 600 }}>
               In Review
             </div>
           </div>
@@ -216,8 +216,8 @@ export const DashboardView: React.FC = () => {
               width: '46px',
               height: '46px',
               borderRadius: '12px',
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
+              background: 'rgba(220, 38, 38, 0.12)',
+              border: '1px solid rgba(220, 38, 38, 0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -229,10 +229,10 @@ export const DashboardView: React.FC = () => {
             </span>
           </div>
           <div>
-            <div style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
+            <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1 }}>
               {overdueTasks.length}
             </div>
-            <div style={{ fontSize: '13.5px', color: '#64748b', marginTop: '6px', fontWeight: 600 }}>
+            <div style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginTop: '6px', fontWeight: 600 }}>
               Urgent Items
             </div>
           </div>
@@ -245,23 +245,23 @@ export const DashboardView: React.FC = () => {
               width: '46px',
               height: '46px',
               borderRadius: '12px',
-              background: '#f5f3ff',
-              border: '1px solid #ddd6fe',
+              background: 'rgba(124, 58, 237, 0.12)',
+              border: '1px solid rgba(124, 58, 237, 0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              <Video size={24} color="#7c3aed" />
+              <Video size={24} color="#a855f7" />
             </div>
             <span className="badge badge-purple">
               {meetings.length > 0 ? `${meetings.length} scheduled` : '0 today'}
             </span>
           </div>
           <div>
-            <div style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
+            <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1 }}>
               {meetings.length}
             </div>
-            <div style={{ fontSize: '13.5px', color: '#64748b', marginTop: '6px', fontWeight: 600 }}>
+            <div style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginTop: '6px', fontWeight: 600 }}>
               Scheduled Meetings
             </div>
           </div>
@@ -286,7 +286,7 @@ export const DashboardView: React.FC = () => {
             gap: '12px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.3px' }}>
                 Tasks
               </h2>
               <span className="badge badge-neutral" style={{ fontWeight: 700 }}>
@@ -329,16 +329,16 @@ export const DashboardView: React.FC = () => {
             <div style={{
               textAlign: 'center',
               padding: '48px 24px',
-              background: '#f8fafc',
+              background: 'var(--bg-app)',
               borderRadius: '12px',
-              border: '1px dashed #cbd5e1',
+              border: '1px dashed var(--border-light)',
             }}>
-              <Inbox size={42} color="#94a3b8" style={{ margin: '0 auto 12px auto' }} />
-              <div style={{ fontWeight: 800, fontSize: '16px', color: '#0f172a' }}>
-                No tasks in {currentOrg.name} yet
+              <Inbox size={42} color="var(--text-muted)" style={{ margin: '0 auto 12px auto', opacity: 0.7 }} />
+              <div style={{ fontWeight: 800, fontSize: '16px', color: 'var(--text-main)' }}>
+                {isAr ? `لا توجد مهام في ${currentOrg.name} حتى الآن` : `No tasks in ${currentOrg.name} yet`}
               </div>
-              <p style={{ fontSize: '13px', color: '#64748b', marginTop: '6px', maxWidth: '320px', margin: '6px auto 16px auto' }}>
-                Kick off your sprint by creating the first actionable task for your team.
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px', maxWidth: '320px', margin: '6px auto 16px auto' }}>
+                {isAr ? 'ابدأ السبرنت بإنشاء أول مهمة لفريقك.' : 'Kick off your sprint by creating the first actionable task for your team.'}
               </p>
               <button
                 type="button"
@@ -347,7 +347,7 @@ export const DashboardView: React.FC = () => {
                 style={{ padding: '8px 16px', fontSize: '13px' }}
               >
                 <Plus size={15} />
-                <span>Create First Task</span>
+                <span>{isAr ? 'إنشاء أول مهمة' : 'Create First Task'}</span>
               </button>
             </div>
           ) : (
@@ -368,24 +368,24 @@ export const DashboardView: React.FC = () => {
                     style={{
                       padding: '14px 16px',
                       borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      background: isCompleted ? '#f8fafc' : '#ffffff',
+                      border: '1px solid var(--border-light)',
+                      background: isCompleted ? 'var(--bg-app)' : 'var(--bg-surface)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
-                      boxShadow: '0 1px 2px rgba(15, 23, 42, 0.03)',
+                      boxShadow: 'var(--shadow-xs)',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#2563eb';
+                      e.currentTarget.style.borderColor = 'var(--primary)';
                       e.currentTarget.style.transform = 'translateY(-1px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.06)';
+                      e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#e2e8f0';
+                      e.currentTarget.style.borderColor = 'var(--border-light)';
                       e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 1px 2px rgba(15, 23, 42, 0.03)';
+                      e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -396,8 +396,8 @@ export const DashboardView: React.FC = () => {
                           width: '22px',
                           height: '22px',
                           borderRadius: '6px',
-                          border: isCompleted ? '1.5px solid #10b981' : '1.5px solid #cbd5e1',
-                          background: isCompleted ? '#10b981' : '#ffffff',
+                          border: isCompleted ? '1.5px solid #10b981' : '1.5px solid var(--border-medium)',
+                          background: isCompleted ? '#10b981' : 'var(--bg-card)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -414,18 +414,18 @@ export const DashboardView: React.FC = () => {
                         <div style={{
                           fontWeight: 600,
                           fontSize: '14px',
-                          color: isCompleted ? '#94a3b8' : '#0f172a',
+                          color: isCompleted ? 'var(--text-muted)' : 'var(--text-main)',
                           textDecoration: isCompleted ? 'line-through' : 'none',
                           marginBottom: '4px',
                         }}>
                           {task.title}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 500 }}>
+                          <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)', fontWeight: 500 }}>
                             {task.projectName}
                           </span>
-                          <span style={{ fontSize: '11px', color: '#cbd5e1' }}>•</span>
-                          <span style={{ fontSize: '11.5px', color: '#64748b' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--border-medium)' }}>•</span>
+                          <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>
                             Due {task.dueDate}
                           </span>
                         </div>
@@ -434,7 +434,7 @@ export const DashboardView: React.FC = () => {
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <span className={`badge ${priorityClass}`}>{task.priority}</span>
-                      <ArrowUpRight size={15} color="#94a3b8" />
+                      <ArrowUpRight size={15} color="var(--text-muted)" />
                     </div>
                   </div>
                 );
@@ -453,14 +453,14 @@ export const DashboardView: React.FC = () => {
               justifyContent: 'space-between',
               marginBottom: '16px',
             }}>
-              <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>
+              <h2 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.3px' }}>
                 Upcoming Meetings
               </h2>
               <button
                 type="button"
                 onClick={() => setCurrentView('calendar')}
                 className="btn btn-ghost btn-sm"
-                style={{ color: '#2563eb', fontWeight: 700 }}
+                style={{ color: 'var(--primary)', fontWeight: 700 }}
               >
                 Calendar
               </button>
@@ -470,15 +470,15 @@ export const DashboardView: React.FC = () => {
               <div style={{
                 textAlign: 'center',
                 padding: '28px 16px',
-                background: '#f8fafc',
+                background: 'var(--bg-app)',
                 borderRadius: '10px',
-                border: '1px dashed #cbd5e1',
+                border: '1px dashed var(--border-light)',
                 fontSize: '13px',
-                color: '#64748b',
+                color: 'var(--text-muted)',
               }}>
-                <Video size={30} color="#94a3b8" style={{ margin: '0 auto 8px auto' }} />
-                <div style={{ fontWeight: 700 }}>No meetings scheduled</div>
-                <div style={{ fontSize: '11.5px', marginTop: '2px' }}>Your calendar is clear for today.</div>
+                <Video size={30} color="var(--text-muted)" style={{ margin: '0 auto 8px auto', opacity: 0.7 }} />
+                <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{isAr ? 'لا توجد اجتماعات مجدولة' : 'No meetings scheduled'}</div>
+                <div style={{ fontSize: '11.5px', marginTop: '2px', color: 'var(--text-muted)' }}>{isAr ? 'جدولك خالٍ لليوم.' : 'Your calendar is clear for today.'}</div>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -488,8 +488,8 @@ export const DashboardView: React.FC = () => {
                     style={{
                       padding: '12px 14px',
                       borderRadius: '10px',
-                      border: '1px solid #e2e8f0',
-                      background: '#f8fafc',
+                      border: '1px solid var(--border-light)',
+                      background: 'var(--bg-app)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
@@ -500,11 +500,11 @@ export const DashboardView: React.FC = () => {
                         width: '4px',
                         height: '36px',
                         borderRadius: '4px',
-                        background: meeting.color || '#2563eb',
+                        background: meeting.color || 'var(--primary)',
                       }} />
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: '13.5px', color: '#0f172a' }}>{meeting.title}</div>
-                        <div style={{ fontSize: '11.5px', color: '#64748b' }}>{meeting.date}, {meeting.timeRange}</div>
+                        <div style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text-main)' }}>{meeting.title}</div>
+                        <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{meeting.date}, {meeting.timeRange}</div>
                       </div>
                     </div>
                   </div>
@@ -575,7 +575,7 @@ export const DashboardView: React.FC = () => {
                         width: '32px',
                         height: '32px',
                         fontSize: '11px',
-                        background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+                        background: 'var(--primary-gradient)',
                         flexShrink: 0,
                       }}
                     >
